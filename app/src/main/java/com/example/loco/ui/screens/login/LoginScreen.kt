@@ -147,7 +147,8 @@ fun AuthScreen(modifier: Modifier = Modifier){
                     println("Email or password cannot be empty")
                 }
             },
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth(),
+            enabled = !isLoading // Disable button while loading
         ) {
             Text(stringResource(R.string.log_in))
         }
