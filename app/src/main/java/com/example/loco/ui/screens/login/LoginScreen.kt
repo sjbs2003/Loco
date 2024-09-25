@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -57,7 +58,7 @@ import kotlinx.coroutines.tasks.await
 
 
 @Composable
-fun AuthScreen(modifier: Modifier){
+fun AuthScreen(modifier: Modifier = Modifier){
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
@@ -115,7 +116,26 @@ fun AuthScreen(modifier: Modifier){
     }
 }
 
-
+@Composable
+fun GoogleSignInButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = ButtonDefaults.buttonColors(Color.White)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.google),
+            contentDescription = "Google Icon",
+            tint = Color.Unspecified,
+            modifier = modifier.size(24.dp)
+        )
+        Spacer(modifier = modifier.width(8.dp))
+        Text("Continue with Google", color = Color.Black)
+    }
+}
 
 
 
