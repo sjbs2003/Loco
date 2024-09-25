@@ -51,6 +51,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
@@ -59,8 +60,30 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun AuthScreen(modifier: Modifier = Modifier){
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Firebase Authentication instance
+    val auth = FirebaseAuth.getInstance()
+
+
+    // Define what happens when authentication completes or fails
+    val authLauncher = authLauncher(
+        onAuthComplete = { authResult ->
+            // Handle successful Google login
+            // For example, navigate to a new screen or display a success message
+            val user = authResult.user
+            println("User signed in successfully: ${user?.displayName}")
+        },
+        onAuthError = {exception ->
+            // Handle authentication error
+            println("Google Sign-in Failed: ${exception.message}")
+        }
+    )
 
     Column(
         modifier = modifier
@@ -96,8 +119,34 @@ fun AuthScreen(modifier: Modifier = Modifier){
         )
         Spacer(modifier = modifier.height(20.dp))
 
+        // handle email/password login
         Button(
-            onClick = { TODO("handle email/password login") },
+            onClick = {
+                if (email.value.isNotEmpty() && password.value.isNotEmpty()){
+                    isLoading = true
+                    coroutineScope.launch {
+                        try {
+                            val authResult = auth.signInWithEmailAndPassword(
+                                email.value.trim(),
+                                password.value.trim()
+                            ).await()
+
+                            // Login successful, navigate to home screen or display a success message
+                            val user = authResult.user
+                            isLoading = false
+                            println("Login successful: ${user?.email}")
+                            TODO("Navigate to the next screen or display a message")
+
+                        } catch (e: Exception){
+                            isLoading = false
+                            println("Login failed: ${e.message}")
+                        }
+                    }
+                }else{
+                    // Display an error for empty fields
+                    println("Email or password cannot be empty")
+                }
+            },
             modifier = modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.log_in))
@@ -106,9 +155,20 @@ fun AuthScreen(modifier: Modifier = Modifier){
         Text(text = "or")
         Spacer(modifier = modifier.height(20.dp))
     }
-    GoogleSignInButton{
-        TODO("handle Google Sign In")
-    }
+    GoogleSignInButton(
+        onClick = { // set up Google Sign-in options
+            val googleSignInClient = GoogleSignIn.getClient(
+                context,
+                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(context.getString(R.string.web_id))
+                    .requestEmail()
+                    .build()
+            )
+            val signInIntent = googleSignInClient.signInIntent
+            authLauncher.launch(signInIntent)
+                  },
+        modifier = Modifier.fillMaxWidth()
+    )
     Spacer(modifier = modifier.height(10.dp))
 
     TextButton(onClick = { TODO("navigate to sign-up Screen") }) {
@@ -136,7 +196,6 @@ fun GoogleSignInButton(
         Text("Continue with Google", color = Color.Black)
     }
 }
-
 
 
 @Composable
