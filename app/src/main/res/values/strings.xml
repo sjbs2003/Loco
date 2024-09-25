@@ -9,5 +9,7 @@
     <string name="title">Title</string>
     <string name="content">Content</string>
     <string name="notes">Notes</string>
+    <string name="log_in">Login</string>
+    <string name="welcome_back">Welcome Back!</string>
     <string name="web_id">742658630760-2avu167t8ccjmhf5biquauvdf4uolji4.apps.googleusercontent.com</string>
 </resources>

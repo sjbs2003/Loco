@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -20,7 +22,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +39,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -51,89 +57,67 @@ import kotlinx.coroutines.tasks.await
 
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
-    var user by remember { mutableStateOf(Firebase.auth.currentUser) }
-    val launcher = authLauncher(
-        onAuthComplete = { result->
-            user = result.user
-        },
-        onAuthError = { user = null }
-    )
-
-    val token = stringResource(R.string.web_id)
-    val context = LocalContext.current
+fun AuthScreen(modifier: Modifier){
+    val email = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
 
     Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        if(user == null){
-            Text(
-                text = stringResource(R.string.not_logged_in),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Red
-            )
-            Spacer(modifier = modifier.height(22.dp))
-            OutlinedButton(
-                onClick = {
-                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestIdToken(token)
-                        .requestEmail()
-                        .build()
+        Image(painter = painterResource(R.drawable.logo), contentDescription = "App Logo")
 
-                    val gsc = GoogleSignIn.getClient(context, gso)
-                    launcher.launch(gsc.signInIntent)
-                },
-                colors = ButtonDefaults.buttonColors(Color.White)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.google),
-                        contentDescription = null,
-                        modifier = modifier.size(30.dp)
-                    )
-                    Spacer(modifier = modifier.width(10.dp))
-                    Text(
-                        text = stringResource(R.string.sign_in),
-                        color = Color.Black
-                    )
-                }
-            }
+        Spacer(modifier = modifier.height(20.dp))
+
+        Text(
+            text = stringResource(R.string.welcome_back),
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Spacer(modifier = modifier.height(20.dp))
+
+        OutlinedTextField(
+            value = email.value,
+            onValueChange = { email.value = it },
+            label = { Text("Email") },
+            modifier = modifier.fillMaxWidth()
+        )
+        Spacer(modifier = modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = password.value,
+            onValueChange = { password.value = it },
+            label = { Text("Password") },
+            modifier = modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation()
+        )
+        Spacer(modifier = modifier.height(20.dp))
+
+        Button(
+            onClick = { TODO("handle email/password login") },
+            modifier = modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.log_in))
         }
-        else{
-            AsyncImage(
-                model = "${user!!.photoUrl}",
-                contentDescription = null,
-                modifier = modifier.size(100.dp).clip(CircleShape)
-            )
-            Text(
-                text = "${user!!.displayName}",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Spacer(modifier = modifier.height(20.dp))
-            Button(
-                onClick = {
-                    Firebase.auth.signOut()
-                    user = null
-                },
-                colors = ButtonDefaults.buttonColors(Color.White)
-            ) {
-                Text(
-                    text = stringResource(R.string.sign_out),
-                    color = Color.Black
-                )
-            }
-        }
+        Spacer(modifier = modifier.height(20.dp))
+        Text(text = "or")
+        Spacer(modifier = modifier.height(20.dp))
+    }
+    GoogleSignInButton{
+        TODO("handle Google Sign In")
+    }
+    Spacer(modifier = modifier.height(10.dp))
+
+    TextButton(onClick = { TODO("navigate to sign-up Screen") }) {
+        Text("Don't have an account? Sign Up")
     }
 }
+
+
+
+
 
 @Composable
 fun authLauncher(
