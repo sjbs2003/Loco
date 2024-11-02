@@ -1,4 +1,4 @@
-package com.example.loco.data
+package com.example.noteapp.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -8,5 +8,7 @@ data class NoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val content: String,
-    val creationDate: Long = System.currentTimeMillis()
+    val category: String = "All",
+    val creationDate: Long = System.currentTimeMillis(),
+    val imageUri: String? = null
 )

@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.loco"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.loco"
@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.navigation.compose)
+    implementation (libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
