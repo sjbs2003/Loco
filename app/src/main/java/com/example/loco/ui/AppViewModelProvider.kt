@@ -1,19 +1,24 @@
 package com.example.loco.ui
 
-
 import android.app.Application
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.loco.LocoApplication
-
+import com.example.loco.viewModel.AuthViewModel
 import com.example.loco.viewModel.NoteCreationViewModel
 import com.example.loco.viewModel.NoteDetailViewModel
 import com.example.loco.viewModel.NoteListViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
+
+        // Initializer for AuthViewModel
+        initializer {
+            AuthViewModel()
+        }
+
         // Initializer for NoteListViewModel
         initializer {
             NoteListViewModel(noteApplication().container.noteRepository)

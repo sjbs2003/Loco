@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -41,7 +43,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -62,15 +67,18 @@ import com.example.loco.viewModel.NoteListViewModel
 @Composable
 fun NoteListScreen(
     onNoteClick: (Long) -> Unit,
-    onCreateNoteClick: () -> Unit
+    onCreateNoteClick: () -> Unit,
+    onSignOut: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val viewModel: NoteListViewModel = viewModel(
-        factory = AppViewModelProvider.Factory
-    )
+    val viewModel: NoteListViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val notes by viewModel.notes.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val categories = listOf("All", "Work", "Reading", "Important")
     val searchQuery by viewModel.searchQuery.collectAsState()
+
+    // Add state for dropdown menu
+    var showMenu by remember { mutableStateOf(false) }
 
     val darkGray = Color(0xFF1E1E1E)
     val lightGray = Color(0xFF2A2A2A)
@@ -99,8 +107,29 @@ fun NoteListScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Open menu */ }) {
+                    IconButton(onClick = { showMenu = true }) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                    }
+                    // Add dropdown menu
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        modifier = Modifier.background(darkGray)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Sign Out", color = Color.White) },
+                            onClick = {
+                                showMenu = false
+                                onSignOut()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_logout),
+                                    contentDescription = "Sign Out",
+                                    tint = Color.White
+                                )
+                            }
+                        )
                     }
                 },
                 actions = {
@@ -108,6 +137,7 @@ fun NoteListScreen(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
+                            .clickable { showMenu = true }
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.vicki),
@@ -126,7 +156,7 @@ fun NoteListScreen(
             Box(
                 modifier = Modifier
                     .padding(bottom = 20.dp, end = 16.dp)
-            ){
+            ) {
                 FloatingActionButton(
                     onClick = { onCreateNoteClick() },
                     containerColor = Color.DarkGray,
@@ -162,10 +192,9 @@ fun NoteListScreen(
                         text = {
                             Text(
                                 category,
-                                color =
-                                if (category == selectedCategory) Color.White
-                                else Color.Gray
-                            ) },
+                                color = if (category == selectedCategory) Color.White else Color.Gray
+                            )
+                        },
                         modifier = Modifier
                             .padding(horizontal = 4.dp, vertical = 8.dp)
                             .clip(RoundedCornerShape(16.dp))
@@ -178,15 +207,31 @@ fun NoteListScreen(
                     )
                 }
             }
+
             // Grid view for notes
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                verticalItemSpacing = 16.dp,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                items(notes) { note ->
-                    NoteCard(note = note, onClick = { onNoteClick(note.id) })
+            if (notes.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No notes yet. Click + to create one!",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2),
+                    verticalItemSpacing = 16.dp,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    items(notes) { note ->
+                        NoteCard(note = note, onClick = { onNoteClick(note.id) })
+                    }
                 }
             }
         }
