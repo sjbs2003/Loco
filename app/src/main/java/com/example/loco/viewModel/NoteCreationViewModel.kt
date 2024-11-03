@@ -1,18 +1,14 @@
-package com.example.noteapp.viewModel
+package com.example.loco.viewModel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.noteapp.data.model.NoteEntity
-import com.example.noteapp.data.model.NoteRepository
+import com.example.loco.model.NoteEntity
+import com.example.loco.model.NoteRepository
 //import com.example.loco.data.NoteEntity
 //import com.example.loco.data.NoteRepository
 //import com.example.noteapp.NoteApplication
-//import com.example.noteapp.data.model.NoteEntity
-//import com.example.noteapp.data.model.NoteRepository
+//import com.example.loco.model.NoteEntity
+//import com.example.loco.model.NoteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

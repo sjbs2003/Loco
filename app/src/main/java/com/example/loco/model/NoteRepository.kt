@@ -1,5 +1,6 @@
-package com.example.noteapp.data.model
+package com.example.loco.model
 
+import com.example.loco.model.NoteEntity
 import kotlinx.coroutines.flow.Flow
 
 interface NoteRepository{

@@ -1,5 +1,8 @@
-package com.example.noteapp.data.model
+package com.example.loco.model
 
+import com.example.loco.model.NoteDao
+import com.example.loco.model.NoteEntity
+import com.example.loco.model.NoteRepository
 import kotlinx.coroutines.flow.Flow
 
 class OfflineNoteRepository(private val noteDao: NoteDao): NoteRepository {

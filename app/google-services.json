@@ -12,7 +12,20 @@
           "package_name": "com.example.loco"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "742658630760-24gcr08qgr72h67ipt6v743ab0kjn5np.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.loco",
+            "certificate_hash": "e540e8eae9fede65b01ce4bb5b06fe37546af515"
+          }
+        },
+        {
+          "client_id": "742658630760-2avu167t8ccjmhf5biquauvdf4uolji4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB8GnJ-A2aeqd394k5GY0pVEoOmVvJ-4eY"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "742658630760-2avu167t8ccjmhf5biquauvdf4uolji4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

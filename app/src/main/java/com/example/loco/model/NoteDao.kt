@@ -1,4 +1,4 @@
-package com.example.noteapp.data.model
+package com.example.loco.model
 
 import androidx.room.Dao
 import androidx.room.Delete

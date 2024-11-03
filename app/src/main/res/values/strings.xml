@@ -3,13 +3,18 @@
     <string name="not_logged_in">Not Logged In</string>
     <string name="sign_in">Sign In With Google</string>
     <string name="sign_out">Sign Out</string>
-    <string name="create_notes">Create Notes</string>
-    <string name="edit_notes">Edit Notes</string>
     <string name="share_notes">Share Notes</string>
-    <string name="title">Title</string>
-    <string name="content">Content</string>
-    <string name="notes">Notes</string>
     <string name="log_in">Login</string>
     <string name="welcome_back">Welcome Back!</string>
     <string name="web_id">742658630760-2avu167t8ccjmhf5biquauvdf4uolji4.apps.googleusercontent.com</string>
+    <string name="notes">Notes</string>
+    <string name="create_notes">Create Notes</string>
+    <string name="edit_notes">Edit Notes</string>
+    <string name="title">Title</string>
+    <string name="content">Content</string>
+    <string name="note_details">Note Details</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="share_note">Share Note Via</string>
 </resources>
