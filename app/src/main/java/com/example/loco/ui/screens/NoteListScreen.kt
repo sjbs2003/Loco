@@ -124,7 +124,7 @@ fun NoteListScreen(
                             },
                             leadingIcon = {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.ic_logout),
+                                    painter = painterResource(id = R.drawable.ic_mic),
                                     contentDescription = "Sign Out",
                                     tint = Color.White
                                 )

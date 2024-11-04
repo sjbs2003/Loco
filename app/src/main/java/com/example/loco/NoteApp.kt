@@ -16,6 +16,7 @@ import com.example.loco.ui.screens.NoteDetailScreen
 import com.example.loco.ui.screens.NoteListScreen
 import com.example.loco.viewModel.AuthState
 import com.example.loco.viewModel.AuthViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 
 enum class NoteScreen(val route: String) {
     Login("login"),
@@ -29,6 +30,7 @@ enum class NoteScreen(val route: String) {
 fun NoteApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
+    val firestore = FirebaseFirestore.getInstance()
     val authState by authViewModel.authState.collectAsState()
 
     NavHost(

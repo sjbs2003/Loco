@@ -1,5 +1,6 @@
 package com.example.loco.ui.screens
 
+import UserViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -61,7 +62,7 @@ import com.example.loco.viewModel.AuthViewModel
 fun SignUp(
     onSignUpSuccess: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: UserViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -69,15 +70,23 @@ fun SignUp(
     var phonenum by remember { mutableStateOf("") }
     var isPassVisible by remember { mutableStateOf(false) }
 
-    // Collect auth state
-    val authState by viewModel.authState.collectAsState()
+    // State for validation
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
 
-    // Handle auth state changes
-    LaunchedEffect(authState) {
-        when (authState) {
-            is AuthState.Authenticated -> onSignUpSuccess()
-            is AuthState.Error -> {
-                // You might want to show an error message
+
+    // Collect user state
+    val userState by viewModel.userState.collectAsState()
+
+    // Handle state changes
+    LaunchedEffect(userState) {
+        when (userState) {
+
+            is UserState.Success -> onSignUpSuccess()
+            is UserState.Error -> {
+                // Handle error state if needed
             }
             else -> {}
         }

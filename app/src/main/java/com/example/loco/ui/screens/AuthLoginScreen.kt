@@ -1,7 +1,9 @@
-@file:Suppress("PreviewAnnotationInFunctionWithParameters")
-
 package com.example.loco.ui.screens
 
+import android.app.Activity
+import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -42,10 +44,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,19 +60,27 @@ import com.example.loco.ui.AppViewModelProvider
 import com.example.loco.viewModel.AuthState
 import com.example.loco.viewModel.AuthViewModel
 
+
+
 @Preview(showBackground = true)
 @Composable
 fun AuthScreen(
     onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isPassVisible by remember { mutableStateOf(false) }
+    var isPassVisible by remember { mutableStateOf(false)}
+    val context = LocalContext.current  // This line gets the current context
 
+    //Google Sign In Launcher
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+    result->viewModel.handleGoogleSignInResult(result.data)
+    }
+    
     // collect auth State
     val authState by viewModel.authState.collectAsState()
 
@@ -78,6 +91,7 @@ fun AuthScreen(
             is AuthState.Error -> {
                 // You might want to show an error message
             }
+
             else -> {}
         }
     }
@@ -121,19 +135,19 @@ fun AuthScreen(
             onValueChange = { email = it },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(size = 15.dp),
-                    colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Black,
-        ),
-        textStyle = TextStyle(fontSize = 20.sp),
-        placeholder = {
-            Text(
-                text = "Example@youremail.com",
-                color = Color.Gray
-            )
-        },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Black,
+                unfocusedIndicatorColor = Color.Black,
+            ),
+            textStyle = TextStyle(fontSize = 20.sp),
+            placeholder = {
+                Text(
+                    text = "Example@youremail.com",
+                    color = Color.Gray
+                )
+            },
             trailingIcon = {
                 if (email.isNotEmpty()) {
                     IconButton(onClick = { email = "" }) {
@@ -153,6 +167,7 @@ fun AuthScreen(
             value = password,
             onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
+            visualTransformation = if (isPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(size = 15.dp),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
@@ -214,7 +229,7 @@ fun AuthScreen(
                 fontSize = 15.sp,
                 color = Color.Black
             )
-            TextButton(onClick =  onSignUpClick ) {
+            TextButton(onClick = onSignUpClick) {
                 Text(text = "Sign Up", fontSize = 15.sp, color = Color.DarkGray)
             }
         }
@@ -230,9 +245,23 @@ fun AuthScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Row {
-            IconButton(onClick = { /*TODO*/ }) {}
+            IconButton(onClick = {
+                launcher.launch(viewModel.getGoogleSignInIntent())
+            }) {
+                Image(
+                    painter = painterResource(id = R.drawable.google),
+                    contentDescription = "Google Sign In",
+                    Modifier.size(35.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(20.dp))
-            IconButton(onClick = { /*TODO*/ }) {}
+            IconButton(onClick = { /*TODO*/ }) {
+                Image(
+                    painter = painterResource(id = R.drawable.phone),
+                    contentDescription = "Phone Login",
+                    Modifier.size(25.dp)
+                )
+            }
         }
     }
 }

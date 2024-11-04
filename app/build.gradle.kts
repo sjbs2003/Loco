@@ -68,6 +68,13 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.espresso.core)
     implementation(libs.androidx.espresso.core)
+    implementation (libs.play.services.auth.v2020)
+    implementation (libs.firebase.auth.ktx)
+    implementation (platform(libs.firebase.bom.v3270))
+    implementation( libs.google.firebase.firestore.ktx)
+
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
