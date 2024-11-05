@@ -1,9 +1,11 @@
 package com.example.loco.viewModel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.loco.model.NoteEntity
 import com.example.loco.model.NoteRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,8 +24,22 @@ class NoteListViewModel(private val repository: NoteRepository) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val auth = FirebaseAuth.getInstance()
+    private val _userProfilePic = MutableStateFlow<Uri?>(null)
+    val userprofilePic: StateFlow<Uri?> = _userProfilePic.asStateFlow()
+
+
     init {
         loadNotes()
+        loadUserProfilePic()
+    }
+
+    private fun loadUserProfilePic() {
+        viewModelScope.launch {
+            auth.currentUser?.let { user ->
+                _userProfilePic.value = user.photoUrl
+            }
+        }
     }
 
     private fun loadNotes() {

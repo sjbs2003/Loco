@@ -1,11 +1,14 @@
 package com.example.loco.ui
 
+
 import android.app.Application
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.loco.LocoApplication
+import com.example.loco.R
 import com.example.loco.viewModel.AuthViewModel
 import com.example.loco.viewModel.NoteCreationViewModel
 import com.example.loco.viewModel.NoteDetailViewModel
@@ -16,7 +19,13 @@ object AppViewModelProvider {
 
         // Initializer for AuthViewModel
         initializer {
-            AuthViewModel()
+            val context = (this [APPLICATION_KEY] as Application)
+            AuthViewModel().apply {
+                initializeGoogleSignIn(
+                    context = context,
+                    webClientId = context.getString(R.string.web_client_id)
+                )
+            }
         }
 
         // Initializer for NoteListViewModel
@@ -41,4 +50,4 @@ object AppViewModelProvider {
  * [NoteApplication].
  */
 fun CreationExtras.noteApplication(): LocoApplication =
-    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as LocoApplication)
+    (this[APPLICATION_KEY] as LocoApplication)

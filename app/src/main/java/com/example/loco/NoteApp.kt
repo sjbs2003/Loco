@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.loco.ui.AppViewModelProvider
 import com.example.loco.ui.screens.AuthScreen
 import com.example.loco.ui.screens.SignUp
 import com.example.loco.ui.screens.NoteCreationScreen
@@ -23,22 +24,17 @@ enum class NoteScreen(val route: String) {
     SignUp("signup"),
     NoteList("noteList"),
     NoteDetail("noteDetail/{noteId}"),
-    NoteCreate("noteCreate/{noteId}")
+    NoteCreate("noteCreate")
 }
 
 @Composable
 fun NoteApp() {
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel = viewModel()
-    val firestore = FirebaseFirestore.getInstance()
-    val authState by authViewModel.authState.collectAsState()
+    val authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
     NavHost(
         navController = navController,
-        startDestination = when (authState) {
-            is AuthState.Authenticated -> NoteScreen.NoteList.route
-            else -> NoteScreen.Login.route
-        }
+        startDestination = NoteScreen.Login.route
     ) {
         composable(route = NoteScreen.Login.route) {
             AuthScreen(
@@ -59,7 +55,8 @@ fun NoteApp() {
                     navController.navigate(NoteScreen.NoteList.route) {
                         popUpTo(NoteScreen.SignUp.route) { inclusive = true }
                     }
-                }
+                },
+                onBackToLogin = { navController.popBackStack() }
             )
         }
 

@@ -96,4 +96,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation(libs.androidx.room.ktx)
+
+    implementation(platform(libs.firebase.bom.v3351))
+    implementation(libs.google.firebase.auth.ktx)
+    implementation(libs.play.services.auth.v2070)
 }

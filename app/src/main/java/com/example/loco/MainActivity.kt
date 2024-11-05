@@ -14,22 +14,14 @@ import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var authViewModel: AuthViewModel
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //Initialize authViewModel
-        authViewModel = AuthViewModel()
+        // Initialize Firebase first
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(this)
+        }
 
-        //Initialize google sign in
-
-        authViewModel.initializeGoogleSignIn(
-            context = this,
-            webClientId = R.string.web_client_id.toString()
-        )
-
-        FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
         setContent {
             LocoTheme {
