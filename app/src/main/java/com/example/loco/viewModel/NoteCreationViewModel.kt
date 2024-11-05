@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-open class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel() {
+class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel() {
 
     private val _noteState = MutableStateFlow(NoteEntity(title = "", content = "", category = "All", imageUri = null))
     val noteState: StateFlow<NoteEntity> = _noteState.asStateFlow()

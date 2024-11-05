@@ -1,12 +1,11 @@
 package com.example.loco.ui.screens
 
-import android.app.Activity
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,22 +16,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,16 +45,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.loco.R
 import com.example.loco.ui.AppViewModelProvider
@@ -61,37 +61,30 @@ import com.example.loco.viewModel.AuthState
 import com.example.loco.viewModel.AuthViewModel
 
 
-
 @Preview(showBackground = true)
 @Composable
 fun AuthScreen(
     onLoginSuccess: () -> Unit,
-    onSignUpClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
-
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isPassVisible by remember { mutableStateOf(false)}
-    val context = LocalContext.current  // This line gets the current context
-
-    //Google Sign In Launcher
-    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-    result->viewModel.handleGoogleSignInResult(result.data)
+    val darkGray = Color(0xFF1E1E1E)
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleGoogleSignInResult(result.data)
     }
-    
-    // collect auth State
-    val authState by viewModel.authState.collectAsState()
 
-    //handle auth state changes
+    val authState by viewModel.authState.collectAsState()
+    var showSignInDialog by remember { mutableStateOf(false) }
+    var showSignUpDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Authenticated -> onLoginSuccess()
             is AuthState.Error -> {
-                // You might want to show an error message
+                // Handle error state
             }
-
             else -> {}
         }
     }
@@ -99,168 +92,497 @@ fun AuthScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .background(darkGray)
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-    )
-    {
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Main content remains the same until the buttons
         Box(
             modifier = Modifier
-                .size(180.dp)  // Avatar size
-                .clip(CircleShape)  // Clip to a circular shape
-                .border(
-                    BorderStroke(2.dp, Color.LightGray),  // Optional: Border around the avatar
-                    CircleShape
-                )
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(Color.DarkGray, CircleShape),
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.logo),
-                contentDescription = "App Logo",
-                modifier = Modifier
-                    .size(300.dp)
+            Text(
+                text = "LOCO",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.Cyan,
+                modifier = Modifier.padding(16.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = stringResource(R.string.welcome_back),
+            text = "Keep It Forever",
             style = MaterialTheme.typography.headlineMedium,
+            color = Color.White,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(size = 15.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Black,
-                unfocusedIndicatorColor = Color.Black,
-            ),
-            textStyle = TextStyle(fontSize = 20.sp),
-            placeholder = {
-                Text(
-                    text = "Example@youremail.com",
-                    color = Color.Gray
-                )
-            },
-            trailingIcon = {
-                if (email.isNotEmpty()) {
-                    IconButton(onClick = { email = "" }) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Clear text",
-                            tint = Color.Black
-                        )
-                    }
-                }
-            }
+        Text(
+            text = "It's free to sync and see your content\non any devices",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (isPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            shape = RoundedCornerShape(size = 15.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Black,  // Remove the outline when focused
-                unfocusedIndicatorColor = Color.Black,
-            ),
-            textStyle = TextStyle(fontSize = 20.sp),
-            placeholder = {
-                Text(
-                    text = "*********",
-                    color = Color.Gray
-                )
-            },
-            trailingIcon = {
-                IconButton(onClick = { isPassVisible = !isPassVisible }) {
-                    Icon(
-
-                        imageVector = if (isPassVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (isPassVisible) "Hide Password" else "Show Password"
-                    )
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
+        // Google Sign In Button
         Button(
-            onClick = {
-                viewModel.signIn(email, password)
-            },
+            onClick = { launcher.launch(viewModel.getGoogleSignInIntent()) },
             modifier = Modifier
-                .height(58.dp)
-                .width(335.dp)
-                .align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007AFF)),
-            enabled = authState !is AuthState.Loading
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Black,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
         ) {
-            if (authState is AuthState.Loading) {
-                CircularProgressIndicator(color = Color.White)
-            } else {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.google),
+                    contentDescription = "Google Icon",
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Log In",
+                    text = "Sign in with Google",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+        // Email Sign In Button
+        Button(
+            onClick = { showSignInDialog = true },
+            modifier = Modifier
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Black,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
         ) {
-            Text(
-                text = "Don't have an Account?",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
-                color = Color.Black
-            )
-            TextButton(onClick = onSignUpClick) {
-                Text(text = "Sign Up", fontSize = 15.sp, color = Color.DarkGray)
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Email,
+                    contentDescription = "Email Icon",
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Sign in with Mail",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
-        Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            text = "Or login with",
-            fontSize = 15.sp,
-            color = Color.Gray,
-            fontWeight = FontWeight.SemiBold
-        )
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
+        TextButton(
+            onClick = { /* Handle skip sign up */ },
+            colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF4CAF50))
+        ) {
+            Text(
+                text = "Skip Sign Up",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
 
-        Row {
-            IconButton(onClick = {
-                launcher.launch(viewModel.getGoogleSignInIntent())
-            }) {
-                Image(
-                    painter = painterResource(id = R.drawable.google),
-                    contentDescription = "Google Sign In",
-                    Modifier.size(35.dp)
-                )
+    // Sign In Dialog
+    if (showSignInDialog) {
+        Dialog(
+            onDismissRequest = { showSignInDialog = false }
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+            ) {
+                var email by remember { mutableStateOf("") }
+                var password by remember { mutableStateOf("") }
+                var isPassVisible by remember { mutableStateOf(false) }
+                var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                // Handle auth state changes specifically for the dialog
+                LaunchedEffect(authState) {
+                    when (authState) {
+                        is AuthState.Error -> {
+                            errorMessage = (authState as AuthState.Error).message
+                        }
+                        is AuthState.Authenticated -> {
+                            showSignInDialog = false
+                            errorMessage = null
+                        }
+                        else -> {
+                            errorMessage = null
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Sign In",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = {
+                            email = it
+                            errorMessage = null
+                        },
+                        label = { Text("Email", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Cyan,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                            errorMessage = null
+                        },
+                        label = { Text("Password", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (isPassVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isPassVisible = !isPassVisible }) {
+                                Icon(
+                                    imageVector = if (isPassVisible)
+                                        Icons.Default.VisibilityOff
+                                    else
+                                        Icons.Default.Visibility,
+                                    contentDescription = if (isPassVisible)
+                                        "Hide Password"
+                                    else
+                                        "Show Password",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Cyan,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    // Error message
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = Color.Red,
+                            modifier = Modifier.padding(top = 8.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            if (email.isBlank() || password.isBlank()) {
+                                errorMessage = "Please fill in all fields"
+                                return@Button
+                            }
+                            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                                errorMessage = "Please enter a valid email"
+                                return@Button
+                            }
+                            viewModel.signIn(email, password)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Cyan,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = authState !is AuthState.Loading
+                    ) {
+                        if (authState is AuthState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White
+                            )
+                        } else {
+                            Text("Sign In", color = Color.Black)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(onClick = {
+                        showSignInDialog = false
+                        showSignUpDialog = true
+                    }) {
+                        Text(
+                            "Don't have an account?",
+                            color = Color.Cyan
+                        )
+                    }
+                }
             }
-            Spacer(modifier = Modifier.width(20.dp))
-            IconButton(onClick = { /*TODO*/ }) {
-                Image(
-                    painter = painterResource(id = R.drawable.phone),
-                    contentDescription = "Phone Login",
-                    Modifier.size(25.dp)
-                )
+        }
+    }
+
+    // Sign Up Dialog
+    if (showSignUpDialog) {
+        Dialog(
+            onDismissRequest = { showSignUpDialog = false }
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+            ) {
+                var email by remember { mutableStateOf("") }
+                var password by remember { mutableStateOf("") }
+                var confirmPassword by remember { mutableStateOf("") }
+                var isPassVisible by remember { mutableStateOf(false) }
+                var isConfirmPassVisible by remember { mutableStateOf(false) }
+                var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                // Handle auth state changes specifically for the dialog
+                LaunchedEffect(authState) {
+                    when (authState) {
+                        is AuthState.Error -> {
+                            errorMessage = (authState as AuthState.Error).message
+                        }
+                        is AuthState.Authenticated -> {
+                            showSignUpDialog = false
+                            errorMessage = null
+                        }
+                        else -> {
+                            errorMessage = null
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Sign Up",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = {
+                            email = it
+                            errorMessage = null
+                        },
+                        label = { Text("Email", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Cyan,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                            errorMessage = null
+                        },
+                        label = { Text("Password", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (isPassVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isPassVisible = !isPassVisible }) {
+                                Icon(
+                                    imageVector = if (isPassVisible)
+                                        Icons.Default.VisibilityOff
+                                    else
+                                        Icons.Default.Visibility,
+                                    contentDescription = if (isPassVisible)
+                                        "Hide Password"
+                                    else
+                                        "Show Password",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Cyan,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = {
+                            confirmPassword = it
+                            errorMessage = null
+                        },
+                        label = { Text("Confirm Password", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (isConfirmPassVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isConfirmPassVisible = !isConfirmPassVisible }) {
+                                Icon(
+                                    imageVector = if (isConfirmPassVisible)
+                                        Icons.Default.VisibilityOff
+                                    else
+                                        Icons.Default.Visibility,
+                                    contentDescription = if (isConfirmPassVisible)
+                                        "Hide Password"
+                                    else
+                                        "Show Password",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Cyan,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    // Error message
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = Color.Red,
+                            modifier = Modifier.padding(top = 8.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            // Validate inputs
+                            when {
+                                email.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
+                                    errorMessage = "Please fill in all fields"
+                                }
+                                !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                    errorMessage = "Please enter a valid email"
+                                }
+                                password.length < 6 -> {
+                                    errorMessage = "Password must be at least 6 characters"
+                                }
+                                password != confirmPassword -> {
+                                    errorMessage = "Passwords don't match"
+                                }
+                                else -> {
+                                    viewModel.signUp(email, password)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Cyan,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = authState !is AuthState.Loading
+                    ) {
+                        if (authState is AuthState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White
+                            )
+                        } else {
+                            Text("Sign Up", color = Color.Black)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(onClick = {
+                        showSignUpDialog = false
+                        showSignInDialog = true
+                    }) {
+                        Text(
+                            "Already have an account?",
+                            color = Color.Cyan
+                        )
+                    }
+                }
             }
         }
     }
