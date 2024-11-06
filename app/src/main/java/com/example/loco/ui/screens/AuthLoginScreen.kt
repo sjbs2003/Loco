@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.loco.R
-import com.example.loco.ui.AppViewModelProvider
+import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.AuthState
 import com.example.loco.viewModel.AuthViewModel
 

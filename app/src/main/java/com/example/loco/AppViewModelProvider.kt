@@ -1,14 +1,11 @@
-package com.example.loco.ui
+package com.example.loco
 
 
 import android.app.Application
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.loco.LocoApplication
-import com.example.loco.R
 import com.example.loco.viewModel.AuthViewModel
 import com.example.loco.viewModel.NoteCreationViewModel
 import com.example.loco.viewModel.NoteDetailViewModel

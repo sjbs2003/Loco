@@ -9,7 +9,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
-import com.example.loco.ui.AppViewModelProvider
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.loco.model.network.NoteSyncWorker
 import com.example.loco.ui.theme.LocoTheme
 import com.example.loco.viewModel.AuthViewModel
 import com.google.firebase.FirebaseApp
@@ -48,6 +53,33 @@ class MainActivity : ComponentActivity() {
                     NoteApp()
                 }
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing) {
+            // Only cleanup when activity is really finishing, not on configuration changes
+            (application as LocoApplication).container.cleanUp()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // ensure changes are synced when app goes to background
+        if (authViewModel.getCurrentUser() != null){
+            val workRequest = OneTimeWorkRequestBuilder<NoteSyncWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                ).build()
+            WorkManager.getInstance(this)
+                .enqueueUniqueWork(
+                    "FINAL_SYNC",
+                    ExistingWorkPolicy.REPLACE,
+                    workRequest
+                )
         }
     }
 }

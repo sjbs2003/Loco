@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.loco.R
-import com.example.loco.ui.AppViewModelProvider
+import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.NoteDetailViewModel
 import java.io.File
 

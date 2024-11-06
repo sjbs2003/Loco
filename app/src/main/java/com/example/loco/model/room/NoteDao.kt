@@ -1,4 +1,4 @@
-package com.example.loco.model
+package com.example.loco.model.room
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -30,4 +30,10 @@ interface NoteDao {
 
     @Query("SELECT imageUri FROM notes WHERE id = :id")
     suspend fun getNoteImageUri(id: Long): String?
+
+    @Query("UPDATE notes SET syncStatus = :status WHERE id = :id")
+    suspend fun updateSyncStatus(id: Long, status: SyncStatus)
+
+    @Query("SELECT * FROM notes WHERE syncStatus = :status")
+    suspend fun getNotesBySyncStatus(status: SyncStatus): List<NoteEntity>
 }

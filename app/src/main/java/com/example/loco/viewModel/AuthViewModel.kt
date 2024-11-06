@@ -24,6 +24,9 @@ class AuthViewModel : ViewModel() {
     private lateinit var googleSignInClient: GoogleSignInClient
     val authState: StateFlow<AuthState> = _authState
 
+    fun getCurrentUser() = auth.currentUser
+    fun getCurrentUserId(): String? = auth.currentUser?.uid
+
     init {
         checkCurrentUser()
     }
@@ -37,7 +40,7 @@ class AuthViewModel : ViewModel() {
     }
 
     fun initializeGoogleSignIn(context: Context, webClientId: String){
-       val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken(webClientId).requestEmail().build()
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken(webClientId).requestEmail().build()
         googleSignInClient = GoogleSignIn.getClient(context,gso)
     }
 
@@ -143,9 +146,9 @@ class AuthViewModel : ViewModel() {
 }
 
 sealed class AuthState {
-    object Initial : AuthState()
-    object Loading : AuthState()
-    object Unauthenticated : AuthState()
+    data object Initial : AuthState()
+    data object Loading : AuthState()
+    data object Unauthenticated : AuthState()
     data class Authenticated(val userId: String) : AuthState()
     data class Error(val message: String) : AuthState()
 }

@@ -2,8 +2,8 @@ package com.example.loco.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.loco.model.NoteEntity
-import com.example.loco.model.NoteRepository
+import com.example.loco.model.room.NoteEntity
+import com.example.loco.model.network.NoteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

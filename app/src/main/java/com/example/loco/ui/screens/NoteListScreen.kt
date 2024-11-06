@@ -68,8 +68,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.loco.R
-import com.example.loco.model.NoteEntity
-import com.example.loco.ui.AppViewModelProvider
+import com.example.loco.model.room.NoteEntity
+import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.NoteListViewModel
 import kotlinx.coroutines.launch
 
@@ -253,8 +253,16 @@ fun NoteListScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { /* Menu icon click disabled */ }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                        IconButton(onClick = {
+                            scope.launch {
+                                drawerState.open()
+                            }
+                        }) {
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = Color.White
+                            )
                         }
                     },
                     actions = {

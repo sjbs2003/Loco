@@ -1,4 +1,4 @@
-package com.example.loco.model
+package com.example.loco.model.room
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -10,5 +10,12 @@ data class NoteEntity(
     val content: String,
     val category: String = "All",
     val creationDate: Long = System.currentTimeMillis(),
-    val imageUri: String? = null
+    val imageUri: String? = null,
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 )
+
+enum class SyncStatus {
+    SYNCED,
+    PENDING,
+    FAILED
+}

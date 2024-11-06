@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.firebase.auth)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.navigation.compose)
     implementation (libs.androidx.material.icons.extended)
@@ -70,11 +69,9 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation (libs.play.services.auth.v2020)
     implementation (libs.firebase.auth.ktx)
-    implementation (platform(libs.firebase.bom.v3270))
-    implementation( libs.google.firebase.firestore.ktx)
 
-    implementation(libs.firebase.database)
-    implementation(libs.firebase.firestore)
+    implementation(libs.cronet.api)
+    implementation(libs.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -97,7 +94,23 @@ dependencies {
     ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation(libs.androidx.room.ktx)
 
-    implementation(platform(libs.firebase.bom.v3351))
+
     implementation(libs.google.firebase.auth.ktx)
     implementation(libs.play.services.auth.v2070)
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+
 }

@@ -1,15 +1,12 @@
 package com.example.loco
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.loco.ui.AppViewModelProvider
 import com.example.loco.ui.screens.AuthScreen
 import com.example.loco.ui.screens.NoteCreationScreen
 import com.example.loco.ui.screens.NoteDetailScreen
