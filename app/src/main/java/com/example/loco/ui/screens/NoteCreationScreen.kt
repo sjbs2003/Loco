@@ -8,6 +8,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,17 +23,26 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -47,15 +58,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.loco.R
 import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.NoteCreationViewModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 
 enum class SpeechField {
@@ -75,6 +92,9 @@ fun NoteCreationScreen(
     val categories = listOf("All","Work","Reading","Important" )
     val darkGray = Color(0xFF1E1E1E)
     var expanded by remember { mutableStateOf(false) }
+    var showReminderDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val reminderState by viewModel.reminderState.collectAsState()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -134,11 +154,11 @@ fun NoteCreationScreen(
                                 tint = Color.White
                             )
                         }
-                        IconButton(onClick = { /* Handle notifications */ }) {
+                        IconButton(onClick = { showReminderDialog = true }) {
                             Icon(
                                 Icons.Default.Notifications,
-                                contentDescription = "Notifications",
-                                tint = Color.White
+                                contentDescription = "Set Reminder",
+                                tint = if (reminderState.isReminderSet) Color.Cyan else Color.White
                             )
                         }
                         IconButton(onClick = { /* Handle more options */ }) {
@@ -252,7 +272,9 @@ fun NoteCreationScreen(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 verticalAlignment = Alignment.Top
             ) {
                 TextField(
@@ -282,5 +304,197 @@ fun NoteCreationScreen(
                 }
             }
         }
+
+        // Add Reminder Dialog
+        if (showReminderDialog){
+            ReminderDialog(
+                onDismiss = { showReminderDialog = false },
+                onSetReminder = { timestamp, date, time ->
+                    viewModel.setReminder(context, timestamp, date, time)
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun ReminderDialog(
+    onDismiss: () -> Unit,
+    onSetReminder: (Long, String, String) -> Unit
+) {
+    val context = LocalContext.current
+    val calendar = remember { Calendar.getInstance() }
+
+    var selectedDate by remember { mutableStateOf("Select Date") }
+    var selectedTime by remember { mutableStateOf("Select Time") }
+    var isDateSelected by remember { mutableStateOf(false) }
+    var isTimeSelected by remember { mutableStateOf(false) }
+
+    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF1E1E1E)
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Set Reminder",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                // Date Selection
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showDatePicker(context, calendar) { date ->
+                                calendar.time = date
+                                selectedDate = dateFormatter.format(date)
+                                isDateSelected = true
+                            }
+                        },
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = Color(0xFF2A2A2A)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.CalendarToday,
+                            contentDescription = "Select Date",
+                            tint = Color.Cyan
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = selectedDate,
+                            color = if (isDateSelected) Color.White else Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Time Selection
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showTimePicker(context, calendar) { hour, minute ->
+                                calendar.set(Calendar.HOUR_OF_DAY, hour)
+                                calendar.set(Calendar.MINUTE, minute)
+                                selectedTime = timeFormatter.format(calendar.time)
+                                isTimeSelected = true
+                            }
+                        },
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = Color(0xFF2A2A2A)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = "Select Time",
+                            tint = Color.Cyan
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = selectedTime,
+                            color = if (isTimeSelected) Color.White else Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", color = Color.Gray)
+                    }
+                    Button(
+                        onClick = {
+                            if (isDateSelected && isTimeSelected) {
+                                onSetReminder(
+                                    calendar.timeInMillis,
+                                    selectedDate,
+                                    selectedTime
+                                )
+                                onDismiss()
+                            }
+                        },
+                        enabled = isDateSelected && isTimeSelected,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Cyan,
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color.Gray
+                        )
+                    ) {
+                        Text("Set Reminder")
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun showDatePicker(
+    context: android.content.Context,
+    calendar: Calendar,
+    onDateSelected: (Date) -> Unit
+) {
+    val datePickerDialog = android.app.DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            calendar.set(year, month, dayOfMonth)
+            onDateSelected(calendar.time)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    ).apply {
+        datePicker.minDate = System.currentTimeMillis()
+    }
+    datePickerDialog.show()
+}
+
+private fun showTimePicker(
+    context: android.content.Context,
+    calendar: Calendar,
+    onTimeSelected: (Int, Int) -> Unit
+) {
+    android.app.TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            onTimeSelected(hourOfDay, minute)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
+    ).show()
 }

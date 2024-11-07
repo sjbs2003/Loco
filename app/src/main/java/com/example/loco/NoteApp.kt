@@ -1,6 +1,7 @@
 package com.example.loco
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,9 +22,16 @@ enum class NoteScreen(val route: String) {
 }
 
 @Composable
-fun NoteApp() {
+fun NoteApp(initialNoteId: Long? = null) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
+    LaunchedEffect(initialNoteId) {
+        // If app was opened from notification, navigate to the specific note
+        initialNoteId?.let { noteId ->
+            navController.navigate(NoteScreen.NoteDetail.route.replace("{noteId}", noteId.toString()))
+        }
+    }
 
     NavHost(
         navController = navController,

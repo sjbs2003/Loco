@@ -43,6 +43,11 @@ class MainActivity : ComponentActivity() {
             webClientId = getString(R.string.web_client_id)
         )
 
+        // Handle notification click
+        val noteId = intent.getLongExtra("note_id", -1L)
+        val fromNotification = intent.getBooleanExtra("from_notification", false)
+
+
         enableEdgeToEdge()
         setContent {
             LocoTheme {
@@ -50,7 +55,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NoteApp()
+                    NoteApp(
+                        initialNoteId = if (fromNotification) noteId else null
+                    )
                 }
             }
         }
