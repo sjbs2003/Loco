@@ -41,23 +41,6 @@ class FireStoreManager {
 
     suspend fun syncNote(note: NoteEntity, userId: String) {
         try {
-            // Get the latest version from Firestore
-            val remoteNote = firestore
-                .collection(USERS_COLLECTION)
-                .document(userId)
-                .collection(NOTES_COLLECTION)
-                .document(note.id.toString())
-                .get()
-                .await()
-                .toObject(FireStoreNote::class.java)
-
-            // If remote note exists and was modified more recently, skip local update
-            if (remoteNote != null &&
-                remoteNote.lastModified.seconds * 1000 > note.creationDate) {
-                return
-            }
-
-            // Otherwise, update Firestore with local version
             val firestoreNote = FireStoreNote.fromNoteEntity(note, userId)
             firestore
                 .collection(USERS_COLLECTION)

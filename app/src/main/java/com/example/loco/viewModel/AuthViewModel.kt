@@ -1,9 +1,12 @@
 package com.example.loco.viewModel
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.loco.LocoApplication
+import com.example.loco.model.network.NoteRepository
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -17,7 +20,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val application: Application,
+    private val repository: NoteRepository
+    ) : AndroidViewModel(application) {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -119,6 +125,12 @@ class AuthViewModel : ViewModel() {
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
                 val result = auth.signInWithCredential(credential).await()
                 handleAuthResult(result)
+
+                // Add explicit sync after successful sign-in
+                result.user?.let { user ->
+                    repository.setCurrentUser(user.uid)
+                    repository.syncWithFireStore(user.uid)
+                }
             }catch (e:ApiException){
                 _authState.value = AuthState.Error("Google sign in failed: ${e.statusCode}")
             }catch (e: Exception){
@@ -127,21 +139,19 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    private fun handleAuthResult(authResult: com.google.firebase.auth.AuthResult){
-        authResult.user?.let {
-            _authState.value= AuthState.Authenticated(it.uid)
-        }?:run {
-            _authState.value = AuthState.Error("Authentication Failded")
+    private fun handleAuthResult(authResult: com.google.firebase.auth.AuthResult) {
+        authResult.user?.let { user ->
+            // Set current user in repository for sync to start
+            (application as LocoApplication).container.noteRepository.setCurrentUser(user.uid)
+            _authState.value = AuthState.Authenticated(user.uid)
+        } ?: run {
+            _authState.value = AuthState.Error("Authentication Failed")
         }
     }
 
     fun signOut() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
-    }
-
-    companion object {
-        const val RC_SIGN_IN = 9001
     }
 }
 

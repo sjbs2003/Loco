@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 class OfflineNoteRepository(
@@ -17,12 +18,22 @@ class OfflineNoteRepository(
     private val firestoreManager: FireStoreManager,
     private val networkObserver: NetworkConnectivityObserver
 ) : NoteRepository {
-
+    private var isNewDevice = true
     private var currentUserId: String? = null
     private val pendingSyncQueue = mutableListOf<NoteEntity>()
     private val repositoryScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun getAllNotes(): Flow<List<NoteEntity>> = noteDao.getAllNotes()
+    override fun getAllNotes(): Flow<List<NoteEntity>> {
+        return if (isNewDevice) {
+            // For new device, get notes directly from Firestore
+            currentUserId?.let { uid ->
+                firestoreManager.getUserNotes(uid)
+            } ?: flow { emit(emptyList()) }
+        } else {
+            // For existing device, get notes from local storage
+            noteDao.getAllNotes()
+        }
+    }
 
     override fun getNote(id: Long): Flow<NoteEntity?> = noteDao.getNoteById(id)
 
@@ -31,20 +42,28 @@ class OfflineNoteRepository(
     }
 
     override suspend fun insertNote(note: NoteEntity) {
-        // Insert with PENDING status
         val noteWithStatus = note.copy(syncStatus = SyncStatus.PENDING)
-        noteDao.insert(noteWithStatus)
 
-        when (networkObserver.observe().first()) {
-            is NetworkStatus.Available -> currentUserId?.let { userId ->
-                try {
-                    firestoreManager.syncNote(noteWithStatus, userId)
+        if (!isNewDevice) {
+            // Store in local database only if this is not a new device
+            noteDao.insert(noteWithStatus)
+        }
+
+        // Always sync new notes to Firebase
+        currentUserId?.let { userId ->
+            try {
+                firestoreManager.syncNote(noteWithStatus, userId)
+                if (!isNewDevice) {
                     noteDao.updateSyncStatus(note.id, SyncStatus.SYNCED)
-                } catch (e: Exception) {
+                } else{
+                    TODO("handle new device case")
+                }
+            } catch (e: Exception) {
+                if (!isNewDevice) {
                     noteDao.updateSyncStatus(note.id, SyncStatus.FAILED)
                 }
+                pendingSyncQueue.add(noteWithStatus)
             }
-            is NetworkStatus.Unavailable -> pendingSyncQueue.add(noteWithStatus)
         }
     }
 
@@ -130,29 +149,32 @@ class OfflineNoteRepository(
     override suspend fun syncWithFireStore(userId: String?) {
         userId?.let { uid ->
             try {
-                // First sync local changes to Firestore
-                syncPendingNotes()
-
-                // Then get all notes from Firestore
-                val firestoreNotes = firestoreManager.getAllUserNotes(uid)
-
-                // Update local database with Firestore data
-                firestoreNotes.forEach { note ->
-                    val existingNote = noteDao.getNoteById(note.id).first()
-                    if (existingNote == null || existingNote.syncStatus != SyncStatus.PENDING) {
-                        noteDao.insert(note.copy(syncStatus = SyncStatus.SYNCED))
-                    }
+                if (isNewDevice) {
+                    // For new device, just get notes from Firestore
+                    val firestoreNotes = firestoreManager.getAllUserNotes(uid)
+                    // Don't store in local database, just keep in memory
+                    // The notes will be shown directly from Firestore
+                } else {
+                    // For existing device, sync pending notes to Firestore
+                    syncPendingNotes()
                 }
             } catch (e: Exception) {
                 // Handle sync errors
+                println("Sync failed: ${e.message}")
             }
         }
     }
 
+
     override fun setCurrentUser(userId: String?) {
         currentUserId = userId
-        // Trigger sync when user changes
+
+        // Check if this is a new device by looking for any existing notes
         repositoryScope.launch {
+            val existingNotes = noteDao.getAllNotesOneShot()
+            isNewDevice = existingNotes.isEmpty()
+
+            // Trigger initial sync
             syncWithFireStore(userId)
         }
     }

@@ -36,4 +36,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes WHERE syncStatus = :status")
     suspend fun getNotesBySyncStatus(status: SyncStatus): List<NoteEntity>
+
+    @Query("SELECT * FROM notes ORDER BY creationDate DESC")
+    suspend fun getAllNotesOneShot(): List<NoteEntity>
 }

@@ -51,6 +51,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -71,6 +72,7 @@ import com.example.loco.R
 import com.example.loco.model.room.NoteEntity
 import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.NoteListViewModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 
@@ -90,6 +92,12 @@ fun NoteListScreen(
     val scope = rememberCoroutineScope()
     val darkGray = Color(0xFF1E1E1E)
     val lightGray = Color(0xFF2A2A2A)
+
+    LaunchedEffect(Unit) {
+        FirebaseAuth.getInstance().currentUser?.let { user ->
+            viewModel.initializeRepository(user.uid)
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,

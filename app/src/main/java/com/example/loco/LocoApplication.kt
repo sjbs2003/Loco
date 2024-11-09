@@ -10,6 +10,7 @@ import com.example.loco.model.network.AppContainer
 import com.example.loco.model.network.AppDataContainer
 import com.example.loco.model.network.NoteSyncWorker
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import java.util.concurrent.TimeUnit
 
 class LocoApplication : Application() {
@@ -19,6 +20,12 @@ class LocoApplication : Application() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
         container = AppDataContainer(this)
+
+        // Initialize repository with current user if available
+        FirebaseAuth.getInstance().currentUser?.let { user ->
+            container.noteRepository.setCurrentUser(user.uid)
+        }
+
         setupWorkManager()
     }
 

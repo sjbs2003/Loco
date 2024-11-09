@@ -16,11 +16,11 @@ object AppViewModelProvider {
 
         // Initializer for AuthViewModel
         initializer {
-            val context = (this [APPLICATION_KEY] as Application)
-            AuthViewModel().apply {
+            val application = (this [APPLICATION_KEY] as LocoApplication)
+            AuthViewModel(application, noteApplication().container.noteRepository).apply {
                 initializeGoogleSignIn(
-                    context = context,
-                    webClientId = context.getString(R.string.web_client_id)
+                    context = application,
+                    webClientId = application.getString(R.string.web_client_id)
                 )
             }
         }
@@ -42,9 +42,5 @@ object AppViewModelProvider {
     }
 }
 
-/**
- * Extension function to queries for [Application] object and returns an instance of
- * [NoteApplication].
- */
 fun CreationExtras.noteApplication(): LocoApplication =
     (this[APPLICATION_KEY] as LocoApplication)

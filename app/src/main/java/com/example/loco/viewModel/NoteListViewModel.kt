@@ -76,4 +76,11 @@ class NoteListViewModel(private val repository: NoteRepository) : ViewModel() {
                             note.content.contains(query, ignoreCase = true))
         }
     }
+
+    fun initializeRepository(userId: String) {
+        viewModelScope.launch {
+            repository.setCurrentUser(userId)
+            repository.syncWithFireStore(userId)
+        }
+    }
 }
