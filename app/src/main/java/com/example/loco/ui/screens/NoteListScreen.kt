@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -74,6 +75,10 @@ import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.NoteListViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.math.abs
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,8 +95,7 @@ fun NoteListScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val darkGray = Color(0xFF1E1E1E)
-    val lightGray = Color(0xFF2A2A2A)
+    val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
         FirebaseAuth.getInstance().currentUser?.let { user ->
@@ -104,7 +108,7 @@ fun NoteListScreen(
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier.width(300.dp),
-                drawerContainerColor = darkGray,
+                drawerContainerColor = colorScheme.surface,
             ) {
                 Column(
                     modifier = Modifier.fillMaxHeight()
@@ -129,21 +133,27 @@ fun NoteListScreen(
                             Text(
                                 text = "Notes App",
                                 style = MaterialTheme.typography.titleLarge,
-                                color = Color.White
+                                color = colorScheme.onSurface
                             )
                         }
                     }
 
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        color = lightGray
+                        color = colorScheme.outlineVariant
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // New Note Button
                     NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Add, contentDescription = "New Note", tint = Color.White) },
-                        label = { Text("New Note", color = Color.White) },
+                        icon = {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "New Note",
+                                tint = colorScheme.onSurface
+                            )
+                        },
+                        label = { Text("New Note", color = colorScheme.onSurface) },
                         selected = false,
                         onClick = {
                             scope.launch {
@@ -152,22 +162,20 @@ fun NoteListScreen(
                             }
                         },
                         colors = NavigationDrawerItemDefaults.colors(
-                            unselectedContainerColor = darkGray
+                            unselectedContainerColor = colorScheme.surface
                         ),
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Notes Section Title
                     Text(
                         text = "Your Notes",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
+                        color = colorScheme.onSurface,
                         modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
                     )
 
-                    // Scrollable Notes List
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -182,14 +190,14 @@ fun NoteListScreen(
                                     Icon(
                                         painter = painterResource(R.drawable.ic_note),
                                         contentDescription = "Note",
-                                        tint = Color.White,
+                                        tint = colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 },
                                 label = {
                                     Text(
                                         text = note.title.ifEmpty { "Untitled Note" },
-                                        color = Color.White,
+                                        color = colorScheme.onSurface,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -202,23 +210,23 @@ fun NoteListScreen(
                                     }
                                 },
                                 colors = NavigationDrawerItemDefaults.colors(
-                                    unselectedContainerColor = darkGray
+                                    unselectedContainerColor = colorScheme.surface
                                 ),
                                 modifier = Modifier.padding(horizontal = 0.dp)
                             )
                         }
                     }
 
-                    // Sign Out Button at the bottom
+                    // Sign Out Button
                     NavigationDrawerItem(
                         icon = {
                             Icon(
                                 painter = painterResource(R.drawable.ic_logout),
                                 contentDescription = "Sign Out",
-                                tint = Color.White
+                                tint = colorScheme.error
                             )
                         },
-                        label = { Text("Sign Out", color = Color.White) },
+                        label = { Text("Sign Out", color = colorScheme.error) },
                         selected = false,
                         onClick = {
                             scope.launch {
@@ -227,7 +235,7 @@ fun NoteListScreen(
                             }
                         },
                         colors = NavigationDrawerItemDefaults.colors(
-                            unselectedContainerColor = darkGray
+                            unselectedContainerColor = colorScheme.surface
                         ),
                         modifier = Modifier
                             .padding(horizontal = 12.dp)
@@ -236,26 +244,29 @@ fun NoteListScreen(
                 }
             }
         }
-    ){
+    ) {
         Scaffold(
-            containerColor = darkGray,
+            containerColor = colorScheme.surface,
             topBar = {
                 TopAppBar(
                     title = {
                         TextField(
                             value = searchQuery,
                             onValueChange = { viewModel.updateSearchQuery(it) },
-                            placeholder = { Text("Search your notes", color = Color.Gray) },
+                            placeholder = {
+                                Text(
+                                    "Search your notes",
+                                    color = colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            },
                             singleLine = true,
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
+                                focusedTextColor = colorScheme.onSurface,
+                                unfocusedTextColor = colorScheme.onSurface,
+                                focusedContainerColor = colorScheme.surface,
+                                unfocusedContainerColor = colorScheme.surface,
                                 focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
+                                unfocusedIndicatorColor = Color.Transparent
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -269,7 +280,7 @@ fun NoteListScreen(
                             Icon(
                                 Icons.Default.Menu,
                                 contentDescription = "Menu",
-                                tint = Color.White
+                                tint = colorScheme.onSurface
                             )
                         }
                     },
@@ -279,26 +290,22 @@ fun NoteListScreen(
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = darkGray
+                        containerColor = colorScheme.surface
                     )
                 )
             },
             floatingActionButton = {
-                Box(
-                    modifier = Modifier
-                        .padding(bottom = 20.dp, end = 16.dp)
+                FloatingActionButton(
+                    onClick = { onCreateNoteClick() },
+                    containerColor = colorScheme.primaryContainer,
+                    contentColor = colorScheme.onPrimaryContainer,
+                    elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                    modifier = Modifier.padding(bottom = 20.dp, end = 16.dp)
                 ) {
-                    FloatingActionButton(
-                        onClick = { onCreateNoteClick() },
-                        containerColor = Color.DarkGray,
-                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Note",
-                            tint = Color.White
-                        )
-                    }
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Add Note"
+                    )
                 }
             }
         ) { innerPadding ->
@@ -306,15 +313,14 @@ fun NoteListScreen(
                 modifier = Modifier
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp)
-                    .background(darkGray)
+                    .background(colorScheme.surface)
             ) {
-                // Category chips
                 ScrollableTabRow(
                     selectedTabIndex = categories.indexOf(selectedCategory),
                     edgePadding = 0.dp,
                     modifier = Modifier.padding(vertical = 8.dp),
-                    containerColor = darkGray,
-                    contentColor = Color.White
+                    containerColor = colorScheme.surface,
+                    contentColor = colorScheme.onSurface
                 ) {
                     categories.forEach { category ->
                         Tab(
@@ -323,7 +329,10 @@ fun NoteListScreen(
                             text = {
                                 Text(
                                     category,
-                                    color = if (category == selectedCategory) Color.White else Color.Gray
+                                    color = if (category == selectedCategory)
+                                        colorScheme.onPrimaryContainer
+                                    else
+                                        colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             },
                             modifier = Modifier
@@ -331,15 +340,14 @@ fun NoteListScreen(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
                                     if (category == selectedCategory)
-                                        MaterialTheme.colorScheme.primaryContainer
+                                        colorScheme.primaryContainer
                                     else
-                                        lightGray
+                                        colorScheme.surfaceVariant
                                 )
                         )
                     }
                 }
 
-                // Grid view for notes
                 if (notes.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -349,7 +357,7 @@ fun NoteListScreen(
                     ) {
                         Text(
                             text = "No notes yet. Click + to create one!",
-                            color = Color.Gray,
+                            color = colorScheme.onSurface.copy(alpha = 0.6f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -396,15 +404,32 @@ private fun UserProfileImage(
 
 @Composable
 fun NoteCard(note: NoteEntity, onClick: () -> Unit) {
-    val backgroundColor = remember {
+    MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+
+    val colors = if (isDark) {
+        listOf(
+            Color(0xFF2C2B20), // Dark Yellow
+            Color(0xFF2C2530), // Dark Purple
+            Color(0xFF1E2A35), // Dark Blue
+            Color(0xFF1E2D1F), // Dark Green
+            Color(0xFF332824)  // Dark Orange
+        )
+    } else {
         listOf(
             Color(0xFFFFF9C4), // Light Yellow
             Color(0xFFE1BEE7), // Light Purple
             Color(0xFFBBDEFB), // Light Blue
             Color(0xFFC8E6C9), // Light Green
             Color(0xFFFFCCBC)  // Light Orange
-        ).random()
+        )
     }
+
+    val backgroundColor = remember(note.id, isDark) {
+        colors[abs(note.id.toInt()) % colors.size]
+    }
+
+    val textColor = if (isDark) Color.White else Color.DarkGray
 
     Card(
         modifier = Modifier
@@ -412,7 +437,10 @@ fun NoteCard(note: NoteEntity, onClick: () -> Unit) {
             .wrapContentHeight()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
     ) {
         Column(
             modifier = Modifier
@@ -420,22 +448,23 @@ fun NoteCard(note: NoteEntity, onClick: () -> Unit) {
                 .fillMaxWidth()
         ) {
             Text(
-                text = note.title,
+                text = note.title.ifEmpty { "Untitled Note" },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = Color.DarkGray
+                color = textColor
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // display the image if exist
-            note.imageUri?.let { uri->
+            // Display the image if exists
+            note.imageUri?.let { uri ->
                 Image(
                     painter = rememberAsyncImagePainter(
                         model = if (uri.startsWith("file://")) {
                             Uri.parse(uri)
-                        } else{
+                        } else {
                             uri
                         }
                     ),
@@ -448,19 +477,40 @@ fun NoteCard(note: NoteEntity, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
+
             Text(
                 text = note.content,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 6,
                 overflow = TextOverflow.Ellipsis,
-                color = Color.DarkGray
+                color = textColor.copy(alpha = 0.8f)
             )
+
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Category: ${note.category}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.DarkGray
-            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Category: ${note.category}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor.copy(alpha = 0.7f)
+                )
+
+                Text(
+                    text = formatDate(note.creationDate),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor.copy(alpha = 0.6f)
+                )
+            }
         }
     }
+}
+
+private fun formatDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    return formatter.format(date)
 }

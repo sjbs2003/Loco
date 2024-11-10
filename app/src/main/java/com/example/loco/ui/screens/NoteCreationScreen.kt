@@ -82,15 +82,13 @@ enum class SpeechField {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCreationScreen(
-    onBackClick:() -> Unit
+    onBackClick: () -> Unit
 ) {
-    val viewModel: NoteCreationViewModel = viewModel(
-        factory = AppViewModelProvider.Factory
-    )
+    val viewModel: NoteCreationViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val noteState by viewModel.noteState.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val categories = listOf("All","Work","Reading","Important" )
-    val darkGray = Color(0xFF1E1E1E)
+    val categories = listOf("All", "Work", "Reading", "Important")
+    val colorScheme = MaterialTheme.colorScheme
     var expanded by remember { mutableStateOf(false) }
     var showReminderDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -129,7 +127,7 @@ fun NoteCreationScreen(
     }
 
     Scaffold(
-        containerColor = darkGray,
+        containerColor = colorScheme.surface,
         topBar = {
             Column {
                 TopAppBar(
@@ -142,7 +140,7 @@ fun NoteCreationScreen(
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = "Done",
-                                tint = Color.White
+                                tint = colorScheme.onSurface
                             )
                         }
                     },
@@ -151,30 +149,27 @@ fun NoteCreationScreen(
                             Icon(
                                 painter = painterResource(R.drawable.ic_images),
                                 contentDescription = "Add Image",
-                                tint = Color.White
+                                tint = colorScheme.onSurface
                             )
                         }
                         IconButton(onClick = { showReminderDialog = true }) {
                             Icon(
                                 Icons.Default.Notifications,
                                 contentDescription = "Set Reminder",
-                                tint = if (reminderState.isReminderSet) Color.Cyan else Color.White
+                                tint = if (reminderState.isReminderSet) colorScheme.primary else colorScheme.onSurface
                             )
                         }
                         IconButton(onClick = { /* Handle more options */ }) {
                             Icon(
                                 Icons.Default.MoreVert,
                                 contentDescription = "More Options",
-                                tint = Color.White
+                                tint = colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = darkGray
-                    ),
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        containerColor = colorScheme.surface
+                    )
                 )
                 Row(
                     modifier = Modifier
@@ -183,27 +178,27 @@ fun NoteCreationScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = (painterResource(R.drawable.ic_folder)),
+                        painter = painterResource(R.drawable.ic_folder),
                         contentDescription = "Category",
-                        tint = Color.White
+                        tint = colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(selectedCategory, color = Color.White)
+                    Text(selectedCategory, color = colorScheme.onSurface)
                     IconButton(onClick = { expanded = true }) {
                         Icon(
                             Icons.Default.ArrowDropDown,
                             contentDescription = "Select Category",
-                            tint = Color.White
+                            tint = colorScheme.onSurface
                         )
                     }
                     DropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded =false },
-                        modifier = Modifier.background(darkGray)
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.background(colorScheme.surface)
                     ) {
-                        categories.forEach { category->
+                        categories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text(category, color = Color.White) },
+                                text = { Text(category, color = colorScheme.onSurface) },
                                 onClick = {
                                     viewModel.updateCategory(category)
                                     expanded = false
@@ -220,7 +215,7 @@ fun NoteCreationScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
-                .background(darkGray)
+                .background(colorScheme.surface)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -229,28 +224,37 @@ fun NoteCreationScreen(
                 TextField(
                     value = noteState.title,
                     onValueChange = { viewModel.updateTitle(it) },
-                    placeholder = { Text("Title", color = Color.Gray) },
+                    placeholder = {
+                        Text(
+                            "Title",
+                            color = colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    },
                     colors = TextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedContainerColor = darkGray,
-                        unfocusedContainerColor = darkGray,
+                        focusedTextColor = colorScheme.onSurface,
+                        unfocusedTextColor = colorScheme.onSurface,
+                        focusedContainerColor = colorScheme.surface,
+                        unfocusedContainerColor = colorScheme.surface,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 8.dp),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
                 IconButton(onClick = { startSpeechRecognition(SpeechField.TITLE) }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_mic),
                         contentDescription = "Speech to Text for Title",
-                        tint = Color.White
+                        tint = colorScheme.onSurface
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Image view
@@ -280,12 +284,17 @@ fun NoteCreationScreen(
                 TextField(
                     value = noteState.content,
                     onValueChange = { viewModel.updateContent(it) },
-                    placeholder = { Text("Note content", color = Color.Gray) },
+                    placeholder = {
+                        Text(
+                            "Note content",
+                            color = colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    },
                     colors = TextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedContainerColor = darkGray,
-                        unfocusedContainerColor = darkGray,
+                        focusedTextColor = colorScheme.onSurface,
+                        unfocusedTextColor = colorScheme.onSurface,
+                        focusedContainerColor = colorScheme.surface,
+                        unfocusedContainerColor = colorScheme.surface,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),
@@ -299,14 +308,13 @@ fun NoteCreationScreen(
                     Icon(
                         painter = painterResource(R.drawable.ic_mic),
                         contentDescription = "Speech to Text for Content",
-                        tint = Color.White
+                        tint = colorScheme.onSurface
                     )
                 }
             }
         }
 
-        // Add Reminder Dialog
-        if (showReminderDialog){
+        if (showReminderDialog) {
             ReminderDialog(
                 onDismiss = { showReminderDialog = false },
                 onSetReminder = { timestamp, date, time ->
@@ -324,6 +332,7 @@ fun ReminderDialog(
 ) {
     val context = LocalContext.current
     val calendar = remember { Calendar.getInstance() }
+    val colorScheme = MaterialTheme.colorScheme
 
     var selectedDate by remember { mutableStateOf("Select Date") }
     var selectedTime by remember { mutableStateOf("Select Time") }
@@ -340,7 +349,7 @@ fun ReminderDialog(
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1E1E1E)
+                containerColor = colorScheme.surface
             )
         ) {
             Column(
@@ -352,11 +361,10 @@ fun ReminderDialog(
                 Text(
                     text = "Set Reminder",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White,
+                    color = colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // Date Selection
                 OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -368,7 +376,7 @@ fun ReminderDialog(
                             }
                         },
                     colors = CardDefaults.outlinedCardColors(
-                        containerColor = Color(0xFF2A2A2A)
+                        containerColor = colorScheme.surfaceVariant
                     )
                 ) {
                     Row(
@@ -380,19 +388,21 @@ fun ReminderDialog(
                         Icon(
                             Icons.Default.CalendarToday,
                             contentDescription = "Select Date",
-                            tint = Color.Cyan
+                            tint = colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = selectedDate,
-                            color = if (isDateSelected) Color.White else Color.Gray
+                            color = if (isDateSelected)
+                                colorScheme.onSurface
+                            else
+                                colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Time Selection
                 OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -405,7 +415,7 @@ fun ReminderDialog(
                             }
                         },
                     colors = CardDefaults.outlinedCardColors(
-                        containerColor = Color(0xFF2A2A2A)
+                        containerColor = colorScheme.surfaceVariant
                     )
                 ) {
                     Row(
@@ -417,25 +427,30 @@ fun ReminderDialog(
                         Icon(
                             Icons.Default.Schedule,
                             contentDescription = "Select Time",
-                            tint = Color.Cyan
+                            tint = colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = selectedTime,
-                            color = if (isTimeSelected) Color.White else Color.Gray
+                            color = if (isTimeSelected)
+                                colorScheme.onSurface
+                            else
+                                colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = Color.Gray)
+                        Text(
+                            "Cancel",
+                            color = colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
                     }
                     Button(
                         onClick = {
@@ -450,9 +465,9 @@ fun ReminderDialog(
                         },
                         enabled = isDateSelected && isTimeSelected,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Cyan,
-                            contentColor = Color.Black,
-                            disabledContainerColor = Color.Gray
+                            containerColor = colorScheme.primary,
+                            contentColor = colorScheme.onPrimary,
+                            disabledContainerColor = colorScheme.surfaceVariant
                         )
                     ) {
                         Text("Set Reminder")

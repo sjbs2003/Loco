@@ -1,5 +1,6 @@
 package com.example.loco.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -60,15 +61,14 @@ import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.AuthState
 import com.example.loco.viewModel.AuthViewModel
 
-
 @Preview(showBackground = true)
 @Composable
 fun AuthScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: () -> Unit = {},
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val darkGray = Color(0xFF1E1E1E)
+    val colorScheme = MaterialTheme.colorScheme
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -92,24 +92,23 @@ fun AuthScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(darkGray)
+            .background(colorScheme.surface)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Main content remains the same until the buttons
         Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
-                .background(Color.DarkGray, CircleShape),
+                .background(colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "LOCO",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.Cyan,
+                color = colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(16.dp)
             )
         }
@@ -119,7 +118,7 @@ fun AuthScreen(
         Text(
             text = "Keep It Forever",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color.White,
+            color = colorScheme.onSurface,
             fontWeight = FontWeight.Bold
         )
 
@@ -128,7 +127,7 @@ fun AuthScreen(
         Text(
             text = "It's free to sync and see your content\non any devices",
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
+            color = colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
@@ -137,14 +136,13 @@ fun AuthScreen(
         // Google Sign In Button
         Button(
             onClick = { launcher.launch(viewModel.getGoogleSignInIntent()) },
-            modifier = Modifier
-                .height(56.dp),
+            modifier = Modifier.height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black,
-                contentColor = Color.White
+                containerColor = colorScheme.surface,
+                contentColor = colorScheme.onSurface
             ),
             shape = RoundedCornerShape(28.dp),
-            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
+            border = BorderStroke(1.dp, colorScheme.outline.copy(alpha = 0.5f))
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -169,14 +167,13 @@ fun AuthScreen(
         // Email Sign In Button
         Button(
             onClick = { showSignInDialog = true },
-            modifier = Modifier
-                .height(56.dp),
+            modifier = Modifier.height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black,
-                contentColor = Color.White
+                containerColor = colorScheme.surface,
+                contentColor = colorScheme.onSurface
             ),
             shape = RoundedCornerShape(28.dp),
-            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
+            border = BorderStroke(1.dp, colorScheme.outline.copy(alpha = 0.5f))
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -186,7 +183,7 @@ fun AuthScreen(
                     imageVector = Icons.Default.Email,
                     contentDescription = "Email Icon",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.White
+                    tint = colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
@@ -201,7 +198,7 @@ fun AuthScreen(
 
         TextButton(
             onClick = { /* Handle skip sign up */ },
-            colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF4CAF50))
+            colors = ButtonDefaults.textButtonColors(contentColor = colorScheme.primary)
         ) {
             Text(
                 text = "Skip Sign Up",
@@ -374,17 +371,178 @@ fun AuthScreen(
         }
     }
 
-    // Sign Up Dialog
-    if (showSignUpDialog) {
-        Dialog(
-            onDismissRequest = { showSignUpDialog = false }
-        ) {
+    // Sign In Dialog
+    if (showSignInDialog) {
+        Dialog(onDismissRequest = { showSignInDialog = false }) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+                colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
+            ) {
+                var email by remember { mutableStateOf("") }
+                var password by remember { mutableStateOf("") }
+                var isPassVisible by remember { mutableStateOf(false) }
+                var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                LaunchedEffect(authState) {
+                    when (authState) {
+                        is AuthState.Error -> {
+                            errorMessage = (authState as AuthState.Error).message
+                        }
+                        is AuthState.Authenticated -> {
+                            showSignInDialog = false
+                            errorMessage = null
+                        }
+                        else -> {
+                            errorMessage = null
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Sign In",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = {
+                            email = it
+                            errorMessage = null
+                        },
+                        label = { Text("Email", color = colorScheme.onSurfaceVariant) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedLabelColor = colorScheme.primary,
+                            unfocusedLabelColor = colorScheme.onSurfaceVariant
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                            errorMessage = null
+                        },
+                        label = { Text("Password", color = colorScheme.onSurfaceVariant) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (isPassVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isPassVisible = !isPassVisible }) {
+                                Icon(
+                                    imageVector = if (isPassVisible)
+                                        Icons.Default.VisibilityOff
+                                    else
+                                        Icons.Default.Visibility,
+                                    contentDescription = if (isPassVisible)
+                                        "Hide Password"
+                                    else
+                                        "Show Password",
+                                    tint = colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedLabelColor = colorScheme.primary,
+                            unfocusedLabelColor = colorScheme.onSurfaceVariant
+                        ),
+                        isError = errorMessage != null
+                    )
+
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = colorScheme.error,
+                            modifier = Modifier.padding(top = 8.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            if (email.isBlank() || password.isBlank()) {
+                                errorMessage = "Please fill in all fields"
+                                return@Button
+                            }
+                            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                                errorMessage = "Please enter a valid email"
+                                return@Button
+                            }
+                            viewModel.signIn(email, password)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorScheme.primary,
+                            contentColor = colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = authState !is AuthState.Loading
+                    ) {
+                        if (authState is AuthState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Sign In")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(onClick = {
+                        showSignInDialog = false
+                        showSignUpDialog = true
+                    }) {
+                        Text(
+                            "Don't have an account?",
+                            color = colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Sign Up Dialog
+    if (showSignUpDialog) {
+        Dialog(onDismissRequest = { showSignUpDialog = false }) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
             ) {
                 var email by remember { mutableStateOf("") }
                 var password by remember { mutableStateOf("") }
@@ -393,7 +551,6 @@ fun AuthScreen(
                 var isConfirmPassVisible by remember { mutableStateOf(false) }
                 var errorMessage by remember { mutableStateOf<String?>(null) }
 
-                // Handle auth state changes specifically for the dialog
                 LaunchedEffect(authState) {
                     when (authState) {
                         is AuthState.Error -> {
@@ -419,7 +576,7 @@ fun AuthScreen(
                         text = "Sign Up",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -430,14 +587,16 @@ fun AuthScreen(
                             email = it
                             errorMessage = null
                         },
-                        label = { Text("Email", color = Color.White) },
+                        label = { Text("Email", color = colorScheme.onSurfaceVariant) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Cyan,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedLabelColor = colorScheme.primary,
+                            unfocusedLabelColor = colorScheme.onSurfaceVariant
                         ),
                         isError = errorMessage != null
                     )
@@ -450,7 +609,7 @@ fun AuthScreen(
                             password = it
                             errorMessage = null
                         },
-                        label = { Text("Password", color = Color.White) },
+                        label = { Text("Password", color = colorScheme.onSurfaceVariant) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         visualTransformation = if (isPassVisible)
@@ -468,15 +627,17 @@ fun AuthScreen(
                                         "Hide Password"
                                     else
                                         "Show Password",
-                                    tint = Color.White
+                                    tint = colorScheme.onSurfaceVariant
                                 )
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Cyan,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedLabelColor = colorScheme.primary,
+                            unfocusedLabelColor = colorScheme.onSurfaceVariant
                         ),
                         isError = errorMessage != null
                     )
@@ -489,7 +650,7 @@ fun AuthScreen(
                             confirmPassword = it
                             errorMessage = null
                         },
-                        label = { Text("Confirm Password", color = Color.White) },
+                        label = { Text("Confirm Password", color = colorScheme.onSurfaceVariant) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         visualTransformation = if (isConfirmPassVisible)
@@ -507,24 +668,25 @@ fun AuthScreen(
                                         "Hide Password"
                                     else
                                         "Show Password",
-                                    tint = Color.White
+                                    tint = colorScheme.onSurfaceVariant
                                 )
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Cyan,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedLabelColor = colorScheme.primary,
+                            unfocusedLabelColor = colorScheme.onSurfaceVariant
                         ),
                         isError = errorMessage != null
                     )
 
-                    // Error message
                     if (errorMessage != null) {
                         Text(
                             text = errorMessage ?: "",
-                            color = Color.Red,
+                            color = colorScheme.error,
                             modifier = Modifier.padding(top = 8.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -534,7 +696,6 @@ fun AuthScreen(
 
                     Button(
                         onClick = {
-                            // Validate inputs
                             when {
                                 email.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
                                     errorMessage = "Please fill in all fields"
@@ -555,8 +716,8 @@ fun AuthScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Cyan,
-                            contentColor = Color.Black
+                            containerColor = colorScheme.primary,
+                            contentColor = colorScheme.onPrimary
                         ),
                         shape = RoundedCornerShape(8.dp),
                         enabled = authState !is AuthState.Loading
@@ -564,10 +725,10 @@ fun AuthScreen(
                         if (authState is AuthState.Loading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = Color.White
+                                color = colorScheme.onPrimary
                             )
                         } else {
-                            Text("Sign Up", color = Color.Black)
+                            Text("Sign Up")
                         }
                     }
 
@@ -579,7 +740,7 @@ fun AuthScreen(
                     }) {
                         Text(
                             "Already have an account?",
-                            color = Color.Cyan
+                            color = colorScheme.primary
                         )
                     }
                 }

@@ -42,10 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,18 +55,15 @@ import com.example.loco.AppViewModelProvider
 import com.example.loco.viewModel.NoteDetailViewModel
 import java.io.File
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     noteId: Long,
     onBackClick: () -> Unit
 ) {
-    val viewModel: NoteDetailViewModel = viewModel(
-        factory = AppViewModelProvider.Factory
-    )
+    val viewModel: NoteDetailViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val noteState by viewModel.noteState.collectAsState()
-    val darkGray = Color(0xFF1E1E1E)
+    val colorScheme = MaterialTheme.colorScheme
     val context = LocalContext.current
 
     fun copyImageToAppStorage(context: Context, uri: Uri): Uri {
@@ -95,10 +92,8 @@ fun NoteDetailScreen(
         }
     }
 
-    // State to keep track of which field is currently selected for speech input
     var currentSpeechField by remember { mutableStateOf<SpeechField?>(null) }
 
-    // Launcher for speech recognition
     val speechRecognizerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -113,7 +108,6 @@ fun NoteDetailScreen(
         currentSpeechField = null
     }
 
-    // Function to start speech recognition
     fun startSpeechRecognition(field: SpeechField) {
         currentSpeechField = field
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -127,13 +121,17 @@ fun NoteDetailScreen(
     }
 
     Scaffold(
-        containerColor = darkGray,
+        containerColor = colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = colorScheme.onSurface
+                        )
                     }
                 },
                 actions = {
@@ -141,26 +139,44 @@ fun NoteDetailScreen(
                         Icon(
                             painter = painterResource(R.drawable.ic_images),
                             contentDescription = "Add Image",
-                            tint = Color.White
+                            tint = colorScheme.onSurface
                         )
                     }
-                    IconButton(onClick = {
-                        noteState?.let { shareNoteContent(context, it.title, it.content) }
-                    }) {
-                        Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.White)
+                    IconButton(
+                        onClick = {
+                            noteState?.let { shareNoteContent(context, it.title, it.content) }
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = "Share",
+                            tint = colorScheme.onSurface
+                        )
                     }
                     IconButton(onClick = { viewModel.saveNote() }) {
-                        Icon(Icons.Default.Check, contentDescription = "Save", tint = Color.White)
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Save",
+                            tint = colorScheme.primary
+                        )
                     }
-                    IconButton(onClick = {
-                        viewModel.deleteNote()
-                        onBackClick()
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                    IconButton(
+                        onClick = {
+                            viewModel.deleteNote()
+                            onBackClick()
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = colorScheme.error
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = darkGray
+                    containerColor = colorScheme.surface,
+                    navigationIconContentColor = colorScheme.onSurface,
+                    actionIconContentColor = colorScheme.onSurface
                 )
             )
         }
@@ -169,7 +185,7 @@ fun NoteDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(darkGray)
+                .background(colorScheme.surface)
                 .padding(16.dp)
         ) {
             Row(
@@ -179,9 +195,10 @@ fun NoteDetailScreen(
                 BasicTextField(
                     value = noteState?.title ?: "",
                     onValueChange = { viewModel.updateTitle(it) },
-                    textStyle = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                    textStyle = TextStyle(
+                        color = colorScheme.onSurface,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier
                         .weight(1f)
@@ -191,13 +208,13 @@ fun NoteDetailScreen(
                     Icon(
                         painter = painterResource(R.drawable.ic_mic),
                         contentDescription = "Speech to Text for Title",
-                        tint = Color.White
+                        tint = colorScheme.onSurface
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Image view
             noteState?.imageUri?.let { uri ->
                 Box(
                     modifier = Modifier
@@ -209,7 +226,7 @@ fun NoteDetailScreen(
                         painter = rememberAsyncImagePainter(
                             model = if (uri.startsWith("file://")) {
                                 Uri.parse(uri)
-                            } else{
+                            } else {
                                 uri
                             }
                         ),
@@ -225,14 +242,17 @@ fun NoteDetailScreen(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 verticalAlignment = Alignment.Top
             ) {
                 BasicTextField(
                     value = noteState?.content ?: "",
                     onValueChange = { viewModel.updateContent(it) },
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color.White.copy(alpha = 0.8f)
+                    textStyle = TextStyle(
+                        color = colorScheme.onSurface.copy(alpha = 0.8f),
+                        fontSize = MaterialTheme.typography.bodyMedium.fontSize
                     ),
                     modifier = Modifier
                         .weight(1f)
@@ -243,7 +263,7 @@ fun NoteDetailScreen(
                     Icon(
                         painter = painterResource(R.drawable.ic_mic),
                         contentDescription = "Speech to Text for Content",
-                        tint = Color.White
+                        tint = colorScheme.onSurface
                     )
                 }
             }
@@ -251,12 +271,11 @@ fun NoteDetailScreen(
     }
 }
 
-
 fun shareNoteContent(context: Context, title: String, content: String) {
     val sharedText = "$title\n\n$content"
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(Intent.EXTRA_TITLE, title) // will be used by email apps
+        putExtra(Intent.EXTRA_TITLE, title)
         putExtra(Intent.EXTRA_TEXT, sharedText)
     }
     context.startActivity(
