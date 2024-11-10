@@ -3,8 +3,9 @@ package com.example.loco.model.network
 import android.content.Context
 import com.example.loco.model.firebase.FireStoreManager
 import com.example.loco.model.room.NoteDatabase
+import com.google.firebase.auth.FirebaseAuth
 
-interface AppContainer{
+interface AppContainer {
     val noteRepository: NoteRepository
     fun cleanUp()
 }
@@ -17,11 +18,18 @@ class AppDataContainer(private val context: Context) : AppContainer {
     }
 
     override val noteRepository: NoteRepository by lazy {
-        OfflineNoteRepository(
+        val repository = OfflineNoteRepository(
             database.noteDao(),
             firestoreManager,
             networkObserver
         )
+
+        // Set current user if already logged in
+        FirebaseAuth.getInstance().currentUser?.let { user ->
+            repository.setCurrentUser(user.uid)
+        }
+
+        repository
     }
 
     override fun cleanUp() {

@@ -11,7 +11,6 @@ import kotlinx.coroutines.tasks.await
 class FireStoreManager {
     private val firestore = FirebaseFirestore.getInstance()
 
-    // Define collection names as constants
     companion object {
         private const val USERS_COLLECTION = "users"
         private const val NOTES_COLLECTION = "notes"
@@ -41,7 +40,7 @@ class FireStoreManager {
 
     suspend fun syncNote(note: NoteEntity, userId: String) {
         try {
-            val firestoreNote = FireStoreNote.fromNoteEntity(note, userId)
+            val firestoreNote = FireStoreNote.fromNoteEntity(note)  // Remove userId parameter
             firestore
                 .collection(USERS_COLLECTION)
                 .document(userId)
@@ -49,30 +48,6 @@ class FireStoreManager {
                 .document(note.id.toString())
                 .set(firestoreNote)
                 .await()
-        } catch (e: Exception) {
-            throw e
-        }
-    }
-
-    suspend fun deleteNote(noteId: Long, userId: String) {
-        try {
-            firestore
-                .collection(USERS_COLLECTION)
-                .document(userId)
-                .collection(NOTES_COLLECTION)
-                .document(noteId.toString())
-                .delete()
-                .await()
-        } catch (e: Exception) {
-            throw e
-        }
-    }
-
-    suspend fun syncAllNotes(notes: List<NoteEntity>, userId: String) {
-        try {
-            notes.forEach { note ->
-                syncNote(note, userId)
-            }
         } catch (e: Exception) {
             throw e
         }
@@ -88,10 +63,24 @@ class FireStoreManager {
                 .await()
                 .documents
                 .mapNotNull { document ->
-                    document.toObject(FireStoreNote::class.java)?.toNoteEntity()
+                    document.toObject(FireStoreNote::class.java)?.toNoteEntity()  // Remove userId parameter
                 }
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    suspend fun deleteNote(noteId: Long, userId: String) {
+        try {
+            firestore
+                .collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(NOTES_COLLECTION)
+                .document(noteId.toString())
+                .delete()
+                .await()
+        } catch (e: Exception) {
+            throw e
         }
     }
 }

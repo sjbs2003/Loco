@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import com.example.loco.model.room.NoteEntity
 import com.example.loco.model.network.NoteRepository
 import com.example.loco.model.notifications.NotificationWorker
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,18 +24,27 @@ data class ReminderUiState(
 )
 
 class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel() {
-    // Existing states
-    private val _noteState = MutableStateFlow(NoteEntity(title = "", content = "", category = "All", imageUri = null))
+    private val currentUserId: String?
+        get() = FirebaseAuth.getInstance().currentUser?.uid
+
+    // Initialize noteState with current user ID
+    private val _noteState = MutableStateFlow(
+        NoteEntity(
+            title = "",
+            content = "",
+            category = "All",
+            imageUri = null,
+            userId = requireNotNull(currentUserId) { "User must be logged in to create notes" }
+        )
+    )
     val noteState: StateFlow<NoteEntity> = _noteState.asStateFlow()
 
     private val _selectedCategory = MutableStateFlow("All")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
-    // New reminder state
     private val _reminderState = MutableStateFlow(ReminderUiState())
     val reminderState: StateFlow<ReminderUiState> = _reminderState.asStateFlow()
 
-    // Existing functions
     fun updateTitle(title: String) {
         _noteState.value = _noteState.value.copy(title = title)
     }
@@ -77,13 +87,18 @@ class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel(
         )
     }
 
-    fun clearReminder() {
-        _reminderState.value = ReminderUiState()
+    fun saveNote() {
+        val userId = currentUserId ?: return  // Don't save if no user is logged in
+
+        viewModelScope.launch {
+            // Ensure the note has the current user ID when saving
+            val noteToSave = _noteState.value.copy(userId = userId)
+            repository.insertNote(noteToSave)
+        }
     }
 
-    fun saveNote() {
-        viewModelScope.launch {
-            repository.insertNote(_noteState.value)
-        }
+    init {
+        // Verify user is logged in when ViewModel is created
+        requireNotNull(currentUserId) { "User must be logged in to create notes" }
     }
 }

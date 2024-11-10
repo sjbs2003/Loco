@@ -11,8 +11,7 @@ interface NoteRepository {
     suspend fun updateNote(note: NoteEntity)
     suspend fun updateNoteImage(id: Long, imageUri: String?)
     suspend fun getNoteImageUri(id: Long): String?
-
-    // New functions for Firebase sync
     suspend fun syncWithFireStore(userId: String?)
     fun setCurrentUser(userId: String?)
+    suspend fun refreshNotes()  // Add new method to force refresh
 }

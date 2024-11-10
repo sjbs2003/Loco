@@ -1,6 +1,7 @@
 package com.example.loco.model.firebase
 
 import com.example.loco.model.room.NoteEntity
+import com.example.loco.model.room.SyncStatus
 import com.google.firebase.Timestamp
 
 data class FireStoreNote(
@@ -16,19 +17,21 @@ data class FireStoreNote(
     fun toNoteEntity(): NoteEntity {
         return NoteEntity(
             id = id,
+            userId = userId, // Include userId in conversion
             title = title,
             content = content,
             category = category,
             creationDate = creationDate.seconds * 1000, // Convert to milliseconds
-            imageUri = imageUri
+            imageUri = imageUri,
+            syncStatus = SyncStatus.SYNCED // Notes from Firestore are considered synced
         )
     }
 
     companion object {
-        fun fromNoteEntity(note: NoteEntity, userId: String): FireStoreNote {
+        fun fromNoteEntity(note: NoteEntity): FireStoreNote {
             return FireStoreNote(
                 id = note.id,
-                userId = userId,
+                userId = note.userId, // Use userId from NoteEntity
                 title = note.title,
                 content = note.content,
                 category = note.category,

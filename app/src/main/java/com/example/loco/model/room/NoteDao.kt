@@ -19,24 +19,24 @@ interface NoteDao {
     @Delete
     suspend fun delete(note: NoteEntity)
 
-    @Query("SELECT * FROM notes ORDER BY creationDate DESC")
-    fun getAllNotes(): Flow<List<NoteEntity>>
+    @Query("SELECT * FROM notes WHERE userId = :userId ORDER BY creationDate DESC")
+    fun getAllNotesForUser(userId: String): Flow<List<NoteEntity>>
 
-    @Query("SELECT * FROM notes WHERE id = :id")
-    fun getNoteById(id: Long): Flow<NoteEntity?>
+    @Query("SELECT * FROM notes WHERE id = :id AND userId = :userId")
+    fun getNoteByIdForUser(id: Long, userId: String): Flow<NoteEntity?>
 
-    @Query("UPDATE notes SET imageUri = :imageUri WHERE id = :id")
-    suspend fun updateNoteImage(id: Long, imageUri: String?)
+    @Query("SELECT * FROM notes WHERE userId = :userId")
+    suspend fun getAllNotesForUserOneShot(userId: String): List<NoteEntity>
 
-    @Query("SELECT imageUri FROM notes WHERE id = :id")
-    suspend fun getNoteImageUri(id: Long): String?
+    @Query("SELECT * FROM notes WHERE syncStatus = :status AND userId = :userId")
+    suspend fun getNotesBySyncStatusForUser(status: SyncStatus, userId: String): List<NoteEntity>
 
-    @Query("UPDATE notes SET syncStatus = :status WHERE id = :id")
-    suspend fun updateSyncStatus(id: Long, status: SyncStatus)
+    @Query("UPDATE notes SET syncStatus = :status WHERE id = :id AND userId = :userId")
+    suspend fun updateSyncStatus(id: Long, status: SyncStatus, userId: String)
 
-    @Query("SELECT * FROM notes WHERE syncStatus = :status")
-    suspend fun getNotesBySyncStatus(status: SyncStatus): List<NoteEntity>
+    @Query("UPDATE notes SET imageUri = :imageUri WHERE id = :id AND userId = :userId")
+    suspend fun updateNoteImage(id: Long, imageUri: String?, userId: String)
 
-    @Query("SELECT * FROM notes ORDER BY creationDate DESC")
-    suspend fun getAllNotesOneShot(): List<NoteEntity>
+    @Query("SELECT imageUri FROM notes WHERE id = :id AND userId = :userId")
+    suspend fun getNoteImageUri(id: Long, userId: String): String?
 }
