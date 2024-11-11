@@ -2,18 +2,23 @@
 
 A modern, feature-rich note-taking Android application built with Jetpack Compose that allows users to create, manage, and sync notes across devices.
 
-App Screenshots 📱
+## App Screenshots 📱
+
 <div align="center">
 <table>
   <tr>
-    <td><img src="screenshots/login_screen.png" alt="Login Screen" width="240"/></td>
-    <td><img src="screenshots/home_screen.png" alt="Home Screen" width="240"/></td>
-    <td><img src="screenshots/note_detail.png" alt="Note Detail" width="240"/></td>
-    <td><img src="screenshots/navigation_drawer.png" alt="Navigation Drawer" width="240"/></td>
+    <td><img src="screenshots/2.png" alt="Login Screen" width="240"/></td>
+    <td><img src="screenshots/1.png" alt="Home Screen" width="240"/></td>
   </tr>
   <tr>
     <td align="center"><b>Login Screen</b></td>
     <td align="center"><b>Home Screen</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/4.png" alt="Note Detail" width="240"/></td>
+    <td><img src="screenshots/3.png" alt="Navigation Drawer" width="240"/></td>
+  </tr>
+  <tr>
     <td align="center"><b>Note Detail</b></td>
     <td align="center"><b>Navigation Drawer</b></td>
   </tr>
