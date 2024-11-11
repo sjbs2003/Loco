@@ -2,18 +2,23 @@
 
 A modern, feature-rich note-taking Android application built with Jetpack Compose that allows users to create, manage, and sync notes across devices.
 
-App Screenshots 📱
+## App Screenshots 📱
+
 <div align="center">
 <table>
   <tr>
-    <td><img src="screenshots/login_screen.png" alt="Login Screen" width="240"/></td>
-    <td><img src="screenshots/home_screen.png" alt="Home Screen" width="240"/></td>
-    <td><img src="screenshots/note_detail.png" alt="Note Detail" width="240"/></td>
-    <td><img src="screenshots/navigation_drawer.png" alt="Navigation Drawer" width="240"/></td>
+    <td><img src="screenshots/login_screen.jpg" alt="Login Screen" width="240"/></td>
+    <td><img src="screenshots/home_screen.jpg" alt="Home Screen" width="240"/></td>
   </tr>
   <tr>
     <td align="center"><b>Login Screen</b></td>
     <td align="center"><b>Home Screen</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/note_detai.jpg" alt="Note Detail" width="240"/></td>
+    <td><img src="screenshots/navigation_drawer.jpg" alt="Navigation Drawer" width="240"/></td>
+  </tr>
+  <tr>
     <td align="center"><b>Note Detail</b></td>
     <td align="center"><b>Navigation Drawer</b></td>
   </tr>
@@ -105,7 +110,7 @@ app/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/loco.git
+git clone https://github.com/sjs2003/loco.git
 ```
 
 2. Open the project in Android Studio
