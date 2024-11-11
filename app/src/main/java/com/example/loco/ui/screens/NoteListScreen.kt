@@ -131,7 +131,7 @@ fun NoteListScreen(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "Notes App",
+                                text = "LOCO",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = colorScheme.onSurface
                             )

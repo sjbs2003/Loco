@@ -1,6 +1,5 @@
 package com.example.loco.ui.screens
 
-import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -56,8 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.loco.R
 import com.example.loco.AppViewModelProvider
+import com.example.loco.R
 import com.example.loco.viewModel.AuthState
 import com.example.loco.viewModel.AuthViewModel
 
@@ -104,12 +103,10 @@ fun AuthScreen(
                 .background(colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "LOCO",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(16.dp)
+            Image(
+                painter = painterResource(R.drawable.app_logo),
+                contentDescription = "App Logo",
+                modifier = Modifier.fillMaxSize()
             )
         }
 

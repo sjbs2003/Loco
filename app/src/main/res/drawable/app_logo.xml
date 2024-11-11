@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#1E1E1E"
+        android:pathData="M100,2 A98,98 0 1,0 100,198 A98,98 0 1,0 100,2"/>
+
+    <!-- Stylized Ghost/Paper shape -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.9"
+        android:pathData="M60,50 L140,50 L140,130 C140,150 120,160 100,160 C80,160 60,150 60,130 Z"/>
+
+    <!-- Abstract lines representing text -->
+    <path
+        android:strokeColor="#1E1E1E"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:pathData="M80,80 L120,80 M80,100 L110,100 M80,120 L100,120"/>
+
+    <!-- Wing-like elements -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.3"
+        android:pathData="M40,90 Q100,110 160,90 Q100,130 40,90 Z"/>
+
+    <!-- Subtle shading -->
+    <path
+        android:fillColor="#ffffff"
+        android:fillAlpha="0.2"
+        android:pathData="M60,50 Q100,60 140,50 L140,70 Q100,80 60,70 Z"/>
+
+</vector>
