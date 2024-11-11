@@ -110,7 +110,7 @@ app/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/loco.git
+git clone https://github.com/sjs2003/loco.git
 ```
 
 2. Open the project in Android Studio
