@@ -1,6 +1,7 @@
 package com.example.loco.viewModel
 
 import android.content.Context
+import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Data
@@ -23,7 +24,13 @@ data class ReminderUiState(
     val reminderTimestamp: Long = 0L
 )
 
+data class FontSettings(
+    val titleFont: FontFamily = FontFamily.Default,
+    val contentFont: FontFamily = FontFamily.Default
+)
+
 class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel() {
+
     private val currentUserId: String?
         get() = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -38,6 +45,9 @@ class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel(
         )
     )
     val noteState: StateFlow<NoteEntity> = _noteState.asStateFlow()
+
+    private val _fontSettings = MutableStateFlow(FontSettings())
+    val fontSettings: StateFlow<FontSettings> = _fontSettings.asStateFlow()
 
     private val _selectedCategory = MutableStateFlow("All")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
@@ -100,5 +110,13 @@ class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel(
     init {
         // Verify user is logged in when ViewModel is created
         requireNotNull(currentUserId) { "User must be logged in to create notes" }
+    }
+
+    fun updateTitleFont(font: FontFamily) {
+        _fontSettings.value = _fontSettings.value.copy(titleFont = font)
+    }
+
+    fun updateContentFont(font: FontFamily) {
+        _fontSettings.value = _fontSettings.value.copy(contentFont = font)
     }
 }

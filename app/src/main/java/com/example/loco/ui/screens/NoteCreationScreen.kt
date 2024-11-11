@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -32,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +42,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,6 +52,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -60,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +75,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.loco.R
 import com.example.loco.AppViewModelProvider
+import com.example.loco.ui.theme.AppFonts
 import com.example.loco.viewModel.NoteCreationViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -79,12 +87,16 @@ enum class SpeechField {
     TITLE, CONTENT
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCreationScreen(
     onBackClick: () -> Unit
 ) {
     val viewModel: NoteCreationViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val fontSettings by viewModel.fontSettings.collectAsState()
+    var showFontDrawer by remember { mutableStateOf(false) }
     val noteState by viewModel.noteState.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val categories = listOf("All", "Work", "Reading", "Important")
@@ -126,201 +138,228 @@ fun NoteCreationScreen(
         speechRecognizerLauncher.launch(intent)
     }
 
-    Scaffold(
-        containerColor = colorScheme.surface,
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = { },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            viewModel.saveNote()
-                            onBackClick()
-                        }) {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = "Done",
-                                tint = colorScheme.onSurface
-                            )
+    ModalNavigationDrawer(
+        drawerContent = {
+            if (showFontDrawer) {
+                FontSelectionDrawer(
+                    onFontSelected = { font, isTitle ->
+                        if (isTitle) {
+                            viewModel.updateTitleFont(font)
+                        } else {
+                            viewModel.updateContentFont(font)
                         }
                     },
-                    actions = {
-                        IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_images),
-                                contentDescription = "Add Image",
-                                tint = colorScheme.onSurface
-                            )
-                        }
-                        IconButton(onClick = { showReminderDialog = true }) {
-                            Icon(
+                    onDismiss = { showFontDrawer = false },
+                    currentTitleFont = fontSettings.titleFont,
+                    currentContentFont = fontSettings.contentFont
+                )
+            }
+        },
+        drawerState = rememberDrawerState(
+            initialValue = if (showFontDrawer) DrawerValue.Open else DrawerValue.Closed
+        ),
+        gesturesEnabled = showFontDrawer
+    ) {
+        Scaffold(
+            containerColor = colorScheme.surface,
+            topBar = {
+                Column {
+                    TopAppBar(
+                        title = { },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                viewModel.saveNote()
+                                onBackClick()
+                            }) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = "Done",
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_images),
+                                    contentDescription = "Add Image",
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+                            IconButton(onClick = { showReminderDialog = true }) {
+                                Icon(
                                 Icons.Default.Notifications,
                                 contentDescription = "Set Reminder",
                                 tint = if (reminderState.isReminderSet) colorScheme.primary else colorScheme.onSurface
-                            )
-                        }
-                        IconButton(onClick = { /* Handle more options */ }) {
+                                )
+                            }
+                            IconButton(onClick = { showFontDrawer = true }) {
+                                Icon(
+                                    Icons.Default.MoreVert,
+                                    contentDescription = "Font Settings",
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = colorScheme.surface
+                        )
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_folder),
+                            contentDescription = "Category",
+                            tint = colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(selectedCategory, color = colorScheme.onSurface)
+                        IconButton(onClick = { expanded = true }) {
                             Icon(
-                                Icons.Default.MoreVert,
-                                contentDescription = "More Options",
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = "Select Category",
                                 tint = colorScheme.onSurface
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorScheme.surface
-                    )
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_folder),
-                        contentDescription = "Category",
-                        tint = colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(selectedCategory, color = colorScheme.onSurface)
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = "Select Category",
-                            tint = colorScheme.onSurface
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(colorScheme.surface)
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category, color = colorScheme.onSurface) },
-                                onClick = {
-                                    viewModel.updateCategory(category)
-                                    expanded = false
-                                }
-                            )
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.background(colorScheme.surface)
+                        ) {
+                            categories.forEach { category ->
+                                DropdownMenuItem(
+                                    text = { Text(category, color = colorScheme.onSurface) },
+                                    onClick = {
+                                        viewModel.updateCategory(category)
+                                        expanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .background(colorScheme.surface)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp)
+                    .background(colorScheme.surface)
             ) {
-                TextField(
-                    value = noteState.title,
-                    onValueChange = { viewModel.updateTitle(it) },
-                    placeholder = {
-                        Text(
-                            "Title",
-                            color = colorScheme.onSurface.copy(alpha = 0.6f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        value = noteState.title,
+                        onValueChange = { viewModel.updateTitle(it) },
+                        placeholder = {
+                            Text(
+                                "Title",
+                                color = colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        textStyle = LocalTextStyle.current.copy(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = fontSettings.titleFont
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedContainerColor = colorScheme.surface,
+                            unfocusedContainerColor = colorScheme.surface,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
+                    )
+                    IconButton(onClick = { startSpeechRecognition(SpeechField.TITLE) }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mic),
+                            contentDescription = "Speech to Text for Title",
+                            tint = colorScheme.onSurface
                         )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = colorScheme.onSurface,
-                        unfocusedTextColor = colorScheme.onSurface,
-                        focusedContainerColor = colorScheme.surface,
-                        unfocusedContainerColor = colorScheme.surface,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
-                    textStyle = LocalTextStyle.current.copy(
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                IconButton(onClick = { startSpeechRecognition(SpeechField.TITLE) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_mic),
-                        contentDescription = "Speech to Text for Title",
-                        tint = colorScheme.onSurface
-                    )
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Image view
-            noteState.imageUri?.let { uri ->
-                Box(
+                // Image view
+                noteState.imageUri?.let { uri ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(uri),
+                            contentDescription = "Note Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .weight(1f),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(uri),
-                        contentDescription = "Note Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                    TextField(
+                        value = noteState.content,
+                        onValueChange = { viewModel.updateContent(it) },
+                        placeholder = {
+                            Text(
+                                "Note content",
+                                color = colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        textStyle = LocalTextStyle.current.copy(
+                            fontSize = 16.sp,
+                            fontFamily = fontSettings.contentFont
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedContainerColor = colorScheme.surface,
+                            unfocusedContainerColor = colorScheme.surface,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(end = 8.dp)
                     )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                verticalAlignment = Alignment.Top
-            ) {
-                TextField(
-                    value = noteState.content,
-                    onValueChange = { viewModel.updateContent(it) },
-                    placeholder = {
-                        Text(
-                            "Note content",
-                            color = colorScheme.onSurface.copy(alpha = 0.6f)
+                    IconButton(onClick = { startSpeechRecognition(SpeechField.CONTENT) }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mic),
+                            contentDescription = "Speech to Text for Content",
+                            tint = colorScheme.onSurface
                         )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = colorScheme.onSurface,
-                        unfocusedTextColor = colorScheme.onSurface,
-                        focusedContainerColor = colorScheme.surface,
-                        unfocusedContainerColor = colorScheme.surface,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(end = 8.dp),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
-                )
-                IconButton(onClick = { startSpeechRecognition(SpeechField.CONTENT) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_mic),
-                        contentDescription = "Speech to Text for Content",
-                        tint = colorScheme.onSurface
-                    )
+                    }
                 }
             }
-        }
 
-        if (showReminderDialog) {
-            ReminderDialog(
-                onDismiss = { showReminderDialog = false },
-                onSetReminder = { timestamp, date, time ->
-                    viewModel.setReminder(context, timestamp, date, time)
-                }
-            )
+            if (showReminderDialog) {
+                ReminderDialog(
+                    onDismiss = { showReminderDialog = false },
+                    onSetReminder = { timestamp, date, time ->
+                        viewModel.setReminder(context, timestamp, date, time)
+                    }
+                )
+            }
         }
     }
 }
@@ -512,4 +551,118 @@ private fun showTimePicker(
         calendar.get(Calendar.MINUTE),
         true
     ).show()
+}
+
+@Composable
+fun FontSelectionDrawer(
+    onFontSelected: (FontFamily, Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    currentTitleFont: FontFamily,
+    currentContentFont: FontFamily
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    ModalDrawerSheet(
+        drawerContainerColor = colorScheme.surface,
+        modifier = Modifier.width(300.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(16.dp)
+        ) {
+            Text(
+                "Font Settings",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = colorScheme.onSurface
+            )
+
+            Text(
+                "Title Font",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = colorScheme.onSurface
+            )
+
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(AppFonts.availableFonts) { (name, font) ->
+                    FontSelectionItem(
+                        fontName = name,
+                        font = font,
+                        isSelected = currentTitleFont == font,
+                        onClick = { onFontSelected(font, true) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "Content Font",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = colorScheme.onSurface
+            )
+
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(AppFonts.availableFonts) { (name, font) ->
+                    FontSelectionItem(
+                        fontName = name,
+                        font = font,
+                        isSelected = currentContentFont == font,
+                        onClick = { onFontSelected(font, false) }
+                    )
+                }
+            }
+
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 16.dp)
+            ) {
+                Text("Done", color = colorScheme.primary)
+            }
+        }
+    }
+}
+
+@Composable
+fun FontSelectionItem(
+    fontName: String,
+    font: FontFamily,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = fontName,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontFamily = font
+            ),
+            color = colorScheme.onSurface
+        )
+
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Selected",
+                tint = colorScheme.primary
+            )
+        }
+    }
 }
