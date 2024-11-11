@@ -32,7 +32,7 @@ data class FontSettings(
 class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel() {
 
     private val currentUserId: String?
-        get() = FirebaseAuth.getInstance().currentUser?.uid
+        get() = FirebaseAuth.getInstance().currentUser?.uid ?: "offline_user" // Return offline_user if not authenticated
 
     // Initialize noteState with current user ID
     private val _noteState = MutableStateFlow(
@@ -41,7 +41,7 @@ class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel(
             content = "",
             category = "All",
             imageUri = null,
-            userId = requireNotNull(currentUserId) { "User must be logged in to create notes" }
+            userId = currentUserId ?: "offline_user" // Use offline_user as fallback
         )
     )
     val noteState: StateFlow<NoteEntity> = _noteState.asStateFlow()
@@ -98,18 +98,12 @@ class NoteCreationViewModel(private val repository: NoteRepository) : ViewModel(
     }
 
     fun saveNote() {
-        val userId = currentUserId ?: return  // Don't save if no user is logged in
-
         viewModelScope.launch {
+            val userId = currentUserId ?: "offline_user"
             // Ensure the note has the current user ID when saving
             val noteToSave = _noteState.value.copy(userId = userId)
             repository.insertNote(noteToSave)
         }
-    }
-
-    init {
-        // Verify user is logged in when ViewModel is created
-        requireNotNull(currentUserId) { "User must be logged in to create notes" }
     }
 
     fun updateTitleFont(font: FontFamily) {
