@@ -16,7 +16,8 @@ class OfflineNoteRepository(
     private val noteDao: NoteDao,
     private val firestoreManager: FireStoreManager,
     private val networkObserver: NetworkConnectivityObserver
-) : NoteRepository {
+) : NoteRepository
+{
     private var currentUserId: String? = null
     private val pendingSyncQueue = mutableListOf<NoteEntity>()
     private val repositoryScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -31,25 +32,35 @@ class OfflineNoteRepository(
 
     override suspend fun insertNote(note: NoteEntity) {
         currentUserId?.let { userId ->
-            // Insert locally with PENDING status
-            val noteWithUserAndStatus = note.copy(
-                userId = userId,
-                syncStatus = SyncStatus.PENDING
-            )
+            // Special handling for offline user
+            val noteWithUserAndStatus = if (userId == "offline_user") {
+                note.copy(
+                    userId = userId,
+                    syncStatus = SyncStatus.SYNCED  // Always SYNCED for offline user
+                )
+            } else {
+                note.copy(
+                    userId = userId,
+                    syncStatus = SyncStatus.PENDING
+                )
+            }
+
             noteDao.insert(noteWithUserAndStatus)
 
-            // Try to sync with Firebase if network is available
-            when (networkObserver.observe().first()) {
-                is NetworkStatus.Available -> {
-                    try {
-                        firestoreManager.syncNote(noteWithUserAndStatus, userId)
-                        noteDao.updateSyncStatus(noteWithUserAndStatus.id, SyncStatus.SYNCED, userId)
-                    } catch (e: Exception) {
+            // Only attempt Firebase sync for non-offline users
+            if (userId != "offline_user") {
+                when (networkObserver.observe().first()) {
+                    is NetworkStatus.Available -> {
+                        try {
+                            firestoreManager.syncNote(noteWithUserAndStatus, userId)
+                            noteDao.updateSyncStatus(noteWithUserAndStatus.id, SyncStatus.SYNCED, userId)
+                        } catch (e: Exception) {
+                            pendingSyncQueue.add(noteWithUserAndStatus)
+                        }
+                    }
+                    is NetworkStatus.Unavailable -> {
                         pendingSyncQueue.add(noteWithUserAndStatus)
                     }
-                }
-                is NetworkStatus.Unavailable -> {
-                    pendingSyncQueue.add(noteWithUserAndStatus)
                 }
             }
         } ?: throw IllegalStateException("No user logged in")
@@ -57,20 +68,29 @@ class OfflineNoteRepository(
 
     override suspend fun updateNote(note: NoteEntity) {
         currentUserId?.let { userId ->
-            val noteWithStatus = note.copy(syncStatus = SyncStatus.PENDING)
+            // Special handling for offline user
+            val noteWithStatus = if (userId == "offline_user") {
+                note.copy(syncStatus = SyncStatus.SYNCED)  // Always SYNCED for offline user
+            } else {
+                note.copy(syncStatus = SyncStatus.PENDING)
+            }
+
             noteDao.update(noteWithStatus)
 
-            when (networkObserver.observe().first()) {
-                is NetworkStatus.Available -> {
-                    try {
-                        firestoreManager.syncNote(noteWithStatus, userId)
-                        noteDao.updateSyncStatus(note.id, SyncStatus.SYNCED, userId)
-                    } catch (e: Exception) {
+            // Only attempt Firebase sync for non-offline users
+            if (userId != "offline_user") {
+                when (networkObserver.observe().first()) {
+                    is NetworkStatus.Available -> {
+                        try {
+                            firestoreManager.syncNote(noteWithStatus, userId)
+                            noteDao.updateSyncStatus(note.id, SyncStatus.SYNCED, userId)
+                        } catch (e: Exception) {
+                            pendingSyncQueue.add(noteWithStatus)
+                        }
+                    }
+                    is NetworkStatus.Unavailable -> {
                         pendingSyncQueue.add(noteWithStatus)
                     }
-                }
-                is NetworkStatus.Unavailable -> {
-                    pendingSyncQueue.add(noteWithStatus)
                 }
             }
         } ?: throw IllegalStateException("No user logged in")
@@ -79,16 +99,19 @@ class OfflineNoteRepository(
     override suspend fun deleteNote(note: NoteEntity) {
         currentUserId?.let { userId ->
             noteDao.delete(note)
-            when (networkObserver.observe().first()) {
-                is NetworkStatus.Available -> {
-                    try {
-                        firestoreManager.deleteNote(note.id, userId)
-                    } catch (e: Exception) {
-                        // Handle delete error if needed
+            // Only attempt Firebase sync for non-offline users
+            if (userId != "offline_user") {
+                when (networkObserver.observe().first()) {
+                    is NetworkStatus.Available -> {
+                        try {
+                            firestoreManager.deleteNote(note.id, userId)
+                        } catch (e: Exception) {
+                            // Handle delete error if needed
+                        }
                     }
-                }
-                is NetworkStatus.Unavailable -> {
-                    // Could implement deletion queue if needed
+                    is NetworkStatus.Unavailable -> {
+                        // Could implement deletion queue if needed
+                    }
                 }
             }
         } ?: throw IllegalStateException("No user logged in")
@@ -96,6 +119,10 @@ class OfflineNoteRepository(
 
 
     override suspend fun syncWithFireStore(userId: String?) {
+        // Skip sync entirely for offline user
+        if (userId == "offline_user") return
+
+        // Existing sync logic remains unchanged for regular users
         userId?.let { uid ->
             try {
                 // Get local notes that need syncing
@@ -103,7 +130,6 @@ class OfflineNoteRepository(
                 val failedNotes = noteDao.getNotesBySyncStatusForUser(SyncStatus.FAILED, uid)
                 val notesToSync = pendingNotes + failedNotes
 
-                // Sync pending local changes to Firestore
                 notesToSync.forEach { note ->
                     try {
                         firestoreManager.syncNote(note, uid)
@@ -113,11 +139,9 @@ class OfflineNoteRepository(
                     }
                 }
 
-                // Only fetch Firestore notes if local DB is empty
                 if (noteDao.getAllNotesForUserOneShot(uid).isEmpty()) {
                     val firestoreNotes = firestoreManager.getAllUserNotes(uid)
                     firestoreNotes.forEach { firestoreNote ->
-                        // Preserve the image URI when storing from Firestore
                         val localNote = noteDao.getNoteByIdForUser(firestoreNote.id, uid).first()
                         if (localNote == null) {
                             noteDao.insert(
@@ -163,7 +187,8 @@ class OfflineNoteRepository(
 
     override fun setCurrentUser(userId: String?) {
         currentUserId = userId
-        if (userId != null) {
+        // Only initiate sync for non-offline users
+        if (userId != null && userId != "offline_user") {
             repositoryScope.launch {
                 syncWithFireStore(userId)
             }
@@ -175,30 +200,24 @@ class OfflineNoteRepository(
             // Update image locally first
             noteDao.updateNoteImage(id, imageUri, userId)
 
-            // Get the updated note
-            val note = noteDao.getNoteByIdForUser(id, userId).first()
+            // Skip Firebase sync for offline user
+            if (userId != "offline_user") {
+                val note = noteDao.getNoteByIdForUser(id, userId).first()
 
-            // Only sync with Firestore if we have a note and network
-            note?.let { updatedNote ->
-                when (networkObserver.observe().first()) {
-                    is NetworkStatus.Available -> {
-                        try {
-                            // Mark as pending before sync
-                            noteDao.updateSyncStatus(id, SyncStatus.PENDING, userId)
-
-                            // Sync the complete note to ensure image URI is included
-                            firestoreManager.syncNote(updatedNote, userId)
-
-                            // Update sync status after successful sync
-                            noteDao.updateSyncStatus(id, SyncStatus.SYNCED, userId)
-                        } catch (e: Exception) {
-                            // Keep the sync status as is if sync fails
-                            noteDao.updateSyncStatus(id, SyncStatus.FAILED, userId)
+                note?.let { updatedNote ->
+                    when (networkObserver.observe().first()) {
+                        is NetworkStatus.Available -> {
+                            try {
+                                noteDao.updateSyncStatus(id, SyncStatus.PENDING, userId)
+                                firestoreManager.syncNote(updatedNote, userId)
+                                noteDao.updateSyncStatus(id, SyncStatus.SYNCED, userId)
+                            } catch (e: Exception) {
+                                noteDao.updateSyncStatus(id, SyncStatus.FAILED, userId)
+                            }
                         }
-                    }
-                    is NetworkStatus.Unavailable -> {
-                        // Mark for later sync
-                        noteDao.updateSyncStatus(id, SyncStatus.PENDING, userId)
+                        is NetworkStatus.Unavailable -> {
+                            noteDao.updateSyncStatus(id, SyncStatus.PENDING, userId)
+                        }
                     }
                 }
             }
@@ -217,14 +236,16 @@ class OfflineNoteRepository(
                 when (status) {
                     is NetworkStatus.Available -> {
                         currentUserId?.let { userId ->
-                            // Only sync pending changes when network becomes available
-                            val pendingNotes = noteDao.getNotesBySyncStatusForUser(SyncStatus.PENDING, userId)
-                            pendingNotes.forEach { note ->
-                                try {
-                                    firestoreManager.syncNote(note, userId)
-                                    noteDao.updateSyncStatus(note.id, SyncStatus.SYNCED, userId)
-                                } catch (e: Exception) {
-                                    // Keep as pending if sync fails
+                            // Skip sync for offline user
+                            if (userId != "offline_user") {
+                                val pendingNotes = noteDao.getNotesBySyncStatusForUser(SyncStatus.PENDING, userId)
+                                pendingNotes.forEach { note ->
+                                    try {
+                                        firestoreManager.syncNote(note, userId)
+                                        noteDao.updateSyncStatus(note.id, SyncStatus.SYNCED, userId)
+                                    } catch (e: Exception) {
+                                        // Keep as pending if sync fails
+                                    }
                                 }
                             }
                         }

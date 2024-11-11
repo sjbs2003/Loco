@@ -23,7 +23,8 @@ import kotlinx.coroutines.tasks.await
 class AuthViewModel(
     private val application: Application,
     private val repository: NoteRepository
-    ) : AndroidViewModel(application) {
+    ) : AndroidViewModel(application)
+{
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -32,6 +33,14 @@ class AuthViewModel(
 
     fun getCurrentUser() = auth.currentUser
     fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    fun skipSignIn() {
+        viewModelScope.launch {
+            // use a constant offline user id
+            repository.setCurrentUser("offline_user")
+            _authState.value = AuthState.Authenticated("offline_user")
+        }
+    }
 
     init {
         checkCurrentUser()
@@ -151,6 +160,7 @@ class AuthViewModel(
 
     fun signOut() {
         auth.signOut()
+        repository.setCurrentUser(null)
         _authState.value = AuthState.Unauthenticated
     }
 }

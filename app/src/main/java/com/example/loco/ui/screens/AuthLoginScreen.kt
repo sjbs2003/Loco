@@ -194,7 +194,7 @@ fun AuthScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         TextButton(
-            onClick = { /* Handle skip sign up */ },
+            onClick = { viewModel.skipSignIn() },
             colors = ButtonDefaults.textButtonColors(contentColor = colorScheme.primary)
         ) {
             Text(
