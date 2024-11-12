@@ -39,4 +39,13 @@ interface NoteDao {
 
     @Query("SELECT imageUri FROM notes WHERE id = :id AND userId = :userId")
     suspend fun getNoteImageUri(id: Long, userId: String): String?
+
+    @Query("UPDATE notes SET isMarkedForDeletion = 1 WHERE id = :noteId")
+    suspend fun markForDeletion(noteId: Long)
+
+    @Query("SELECT * FROM notes WHERE isMarkedForDeletion = 1")
+    suspend fun getNotesMarkedForDeletion(): List<NoteEntity>
+
+    @Query("DELETE FROM notes WHERE id = :noteId")
+    suspend fun permanentlyDelete(noteId: Long)
 }

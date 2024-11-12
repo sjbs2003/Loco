@@ -14,4 +14,5 @@ interface NoteRepository {
     suspend fun syncWithFireStore(userId: String?)
     fun setCurrentUser(userId: String?)
     suspend fun refreshNotes()  // Add new method to force refresh
+    suspend fun syncDeletedNotes()
 }

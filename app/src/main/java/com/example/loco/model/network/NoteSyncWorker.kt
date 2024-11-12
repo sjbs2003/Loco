@@ -24,6 +24,7 @@ class NoteSyncWorker(
         return try {
             if (currentUser != null) {
                 repository.setCurrentUser(currentUser.uid)
+                repository.syncDeletedNotes()
                 repository.refreshNotes()  // Force a refresh of notes
                 Result.success()
             } else {

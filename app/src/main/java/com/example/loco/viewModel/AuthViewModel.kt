@@ -32,15 +32,6 @@ class AuthViewModel(
     val authState: StateFlow<AuthState> = _authState
 
     fun getCurrentUser() = auth.currentUser
-    fun getCurrentUserId(): String? = auth.currentUser?.uid
-
-    fun skipSignIn() {
-        viewModelScope.launch {
-            // use a constant offline user id
-            repository.setCurrentUser("offline_user")
-            _authState.value = AuthState.Authenticated("offline_user")
-        }
-    }
 
     init {
         checkCurrentUser()
@@ -48,9 +39,17 @@ class AuthViewModel(
 
     private fun checkCurrentUser(){
         auth.currentUser?.let {
-            _authState.value = AuthState.Authenticated(it.uid)
+            _authState.value = AuthState.LoggedIn(it.uid)
         } ?: run {
-            _authState.value = AuthState.Unauthenticated
+            _authState.value = AuthState.LoggedOut
+        }
+    }
+
+    fun skipSignIn() {
+        viewModelScope.launch {
+            // use a constant offline user id
+            repository.setCurrentUser("offline_user")
+            _authState.value = AuthState.LoggedIn("offline_user")
         }
     }
 
@@ -81,7 +80,7 @@ class AuthViewModel(
                             .set(user)
                             .await()
 
-                        _authState.value = AuthState.Authenticated(firebaseUser.uid)
+                        _authState.value = AuthState.LoggedIn(firebaseUser.uid)
                     } catch (e: Exception) {
                         // If Firestore save fails, delete the auth user
                         firebaseUser.delete().await()
@@ -112,7 +111,7 @@ class AuthViewModel(
                 _authState.value = AuthState.Loading
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 result.user?.let {
-                    _authState.value = AuthState.Authenticated(it.uid)
+                    _authState.value = AuthState.LoggedIn(it.uid)
                 } ?: run {
                     _authState.value = AuthState.Error("Authentication failed")
                 }
@@ -152,7 +151,7 @@ class AuthViewModel(
         authResult.user?.let { user ->
             // Set current user in repository for sync to start
             (application as LocoApplication).container.noteRepository.setCurrentUser(user.uid)
-            _authState.value = AuthState.Authenticated(user.uid)
+            _authState.value = AuthState.LoggedIn(user.uid)
         } ?: run {
             _authState.value = AuthState.Error("Authentication Failed")
         }
@@ -161,14 +160,14 @@ class AuthViewModel(
     fun signOut() {
         auth.signOut()
         repository.setCurrentUser(null)
-        _authState.value = AuthState.Unauthenticated
+        _authState.value = AuthState.LoggedOut
     }
 }
 
 sealed class AuthState {
     data object Initial : AuthState()
     data object Loading : AuthState()
-    data object Unauthenticated : AuthState()
-    data class Authenticated(val userId: String) : AuthState()
+    data object LoggedOut : AuthState()  // Renamed from Unauthenticated
+    data class LoggedIn(val userId: String) : AuthState()  // Renamed from Authenticated
     data class Error(val message: String) : AuthState()
 }

@@ -32,12 +32,14 @@ object AppViewModelProvider {
 
         // Initializer for NoteCreationViewModel
         initializer {
-            NoteCreationViewModel(noteApplication().container.noteRepository)
+            val application = (this [APPLICATION_KEY] as LocoApplication)
+            NoteCreationViewModel(application, noteApplication().container.noteRepository)
         }
 
         // Initializer for NoteDetailViewModel
         initializer {
-            NoteDetailViewModel(noteApplication().container.noteRepository)
+            val application = (this [APPLICATION_KEY] as LocoApplication)
+            NoteDetailViewModel(application, noteApplication().container.noteRepository)
         }
     }
 }

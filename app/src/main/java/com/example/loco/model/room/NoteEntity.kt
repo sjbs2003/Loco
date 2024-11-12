@@ -6,17 +6,19 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "notes")
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val userId: String,  // Add userId field
+    val userId: String,
     val title: String,
     val content: String,
     val category: String = "All",
     val creationDate: Long = System.currentTimeMillis(),
     val imageUri: String? = null,
-    val syncStatus: SyncStatus = SyncStatus.PENDING
+    val syncStatus: SyncStatus = SyncStatus.PENDING,
+    val isMarkedForDeletion: Boolean = false  // Add this field
 )
 
 enum class SyncStatus {
     SYNCED,
     PENDING,
-    FAILED
+    FAILED,
+    IDLE
 }

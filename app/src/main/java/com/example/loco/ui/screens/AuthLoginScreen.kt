@@ -80,7 +80,7 @@ fun AuthScreen(
 
     LaunchedEffect(authState) {
         when (authState) {
-            is AuthState.Authenticated -> onLoginSuccess()
+            is AuthState.LoggedIn -> onLoginSuccess()
             is AuthState.Error -> {
                 // Handle error state
             }
@@ -228,7 +228,7 @@ fun AuthScreen(
                         is AuthState.Error -> {
                             errorMessage = (authState as AuthState.Error).message
                         }
-                        is AuthState.Authenticated -> {
+                        is AuthState.LoggedIn -> {
                             showSignInDialog = false
                             errorMessage = null
                         }
@@ -388,7 +388,7 @@ fun AuthScreen(
                         is AuthState.Error -> {
                             errorMessage = (authState as AuthState.Error).message
                         }
-                        is AuthState.Authenticated -> {
+                        is AuthState.LoggedIn -> {
                             showSignInDialog = false
                             errorMessage = null
                         }
@@ -553,7 +553,7 @@ fun AuthScreen(
                         is AuthState.Error -> {
                             errorMessage = (authState as AuthState.Error).message
                         }
-                        is AuthState.Authenticated -> {
+                        is AuthState.LoggedIn -> {
                             showSignUpDialog = false
                             errorMessage = null
                         }

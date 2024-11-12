@@ -111,7 +111,7 @@ fun NoteCreationScreen(
     ) { uri: Uri? ->
         uri?.let {
             // Pass the URI directly to the ViewModel
-            viewModel.updateImage(it.toString())
+            viewModel.updateImage(it)
         }
     }
 
@@ -191,9 +191,9 @@ fun NoteCreationScreen(
                             }
                             IconButton(onClick = { showReminderDialog = true }) {
                                 Icon(
-                                Icons.Default.Notifications,
-                                contentDescription = "Set Reminder",
-                                tint = if (reminderState.isReminderSet) colorScheme.primary else colorScheme.onSurface
+                                    Icons.Default.Notifications,
+                                    contentDescription = "Set Reminder",
+                                    tint = if (reminderState.isReminderSet) colorScheme.primary else colorScheme.onSurface
                                 )
                             }
                             IconButton(onClick = { showFontDrawer = true }) {

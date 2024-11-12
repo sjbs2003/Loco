@@ -21,7 +21,8 @@ class AppDataContainer(private val context: Context) : AppContainer {
         val repository = OfflineNoteRepository(
             database.noteDao(),
             firestoreManager,
-            networkObserver
+            networkObserver,
+            context
         )
 
         // Set current user if already logged in

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [NoteEntity::class], version = 3, exportSchema = false)
+@Database(entities = [NoteEntity::class], version = 4, exportSchema = false)
 abstract class NoteDatabase : RoomDatabase() {
 
     // declare an abstract function that returns the ItemDao so that the database knows about the DAO.
@@ -34,6 +34,13 @@ abstract class NoteDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add isMarkedForDeletion column with default value false
+                db.execSQL("ALTER TABLE notes ADD COLUMN isMarkedForDeletion INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         /*
          * Multiple threads can potentially ask for a database instance at the same time,
          * which results in two databases instead of one. This issue is known as a race condition.
@@ -48,7 +55,7 @@ abstract class NoteDatabase : RoomDatabase() {
                     NoteDatabase::class.java,
                     "note_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance

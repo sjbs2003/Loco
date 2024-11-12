@@ -69,7 +69,7 @@ fun NoteDetailScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            viewModel.updateImage(it.toString())
+            viewModel.updateImage(it)
         }
     }
 
