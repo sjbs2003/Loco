@@ -50,10 +50,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.loco.R
 import com.example.loco.AppViewModelProvider
+import com.example.loco.R
 import com.example.loco.viewModel.NoteDetailViewModel
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,29 +65,11 @@ fun NoteDetailScreen(
     val colorScheme = MaterialTheme.colorScheme
     val context = LocalContext.current
 
-    fun copyImageToAppStorage(context: Context, uri: Uri): Uri {
-        val contentResolver = context.contentResolver
-        val fileName = "note_image_${System.currentTimeMillis()}.jpg"
-        val imagesDir = File(context.filesDir, "note_images").apply {
-            if (!exists()) mkdirs()
-        }
-        val file = File(imagesDir, fileName)
-
-        contentResolver.openInputStream(uri)?.use { input ->
-            file.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-
-        return Uri.fromFile(file)
-    }
-
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val permanentUri = copyImageToAppStorage(context, it)
-            viewModel.updateImage(permanentUri.toString())
+            viewModel.updateImage(it.toString())
         }
     }
 
@@ -224,10 +205,10 @@ fun NoteDetailScreen(
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(
-                            model = if (uri.startsWith("file://")) {
-                                Uri.parse(uri)
+                            model = if (uri.contains("|")) {
+                                Uri.parse(uri.split("|")[1]) // Use local path
                             } else {
-                                uri
+                                Uri.parse(uri)
                             }
                         ),
                         contentDescription = "Note Image",

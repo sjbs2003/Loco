@@ -23,7 +23,7 @@ import kotlinx.coroutines.tasks.await
 class AuthViewModel(
     private val application: Application,
     private val repository: NoteRepository
-    ) : AndroidViewModel(application)
+) : AndroidViewModel(application)
 {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()

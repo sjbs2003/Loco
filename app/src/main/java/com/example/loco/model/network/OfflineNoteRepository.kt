@@ -117,7 +117,6 @@ class OfflineNoteRepository(
         } ?: throw IllegalStateException("No user logged in")
     }
 
-
     override suspend fun syncWithFireStore(userId: String?) {
         // Skip sync entirely for offline user
         if (userId == "offline_user") return

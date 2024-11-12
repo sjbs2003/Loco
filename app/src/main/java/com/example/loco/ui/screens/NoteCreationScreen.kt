@@ -109,7 +109,10 @@ fun NoteCreationScreen(
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { viewModel.updateImage(it.toString()) }
+        uri?.let {
+            // Pass the URI directly to the ViewModel
+            viewModel.updateImage(it.toString())
+        }
     }
 
     // State to keep track of which field is currently selected for speech input
@@ -301,7 +304,13 @@ fun NoteCreationScreen(
                             .clip(RoundedCornerShape(8.dp))
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(uri),
+                            painter = rememberAsyncImagePainter(
+                                model = if (uri.contains("|")) {
+                                    Uri.parse(uri.split("|")[1]) // Use local path
+                                } else {
+                                    Uri.parse(uri)
+                                }
+                            ),
                             contentDescription = "Note Image",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop

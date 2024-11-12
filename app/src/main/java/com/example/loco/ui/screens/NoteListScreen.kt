@@ -488,10 +488,9 @@ fun NoteCard(note: NoteEntity, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
+            Column (
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = "Category: ${note.category}",
